@@ -1,4 +1,6 @@
 # thermostat-display
+Daemon to handle the user interface
+
 
 Setup:
 Rename config.txt.sample to config.txt
