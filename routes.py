@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 from flask import *
 from flask.ext.basicauth import BasicAuth
 from flaskext.mysql import MySQL
@@ -50,9 +53,9 @@ basic_auth = BasicAuth(app)
 
 app.secret_key = config.get('main','secretKey')
 
-print 'starting autoset'
-subprocess.Popen("sudo %s autoSetDaemon.py start" % VIRTUALENV, shell=True)
-print 'started autoset'
+#print 'starting autoset'
+#subprocess.Popen("sudo %s autoSetDaemon.py start" % VIRTUALENV, shell=True)
+#print 'started autoset'
 
 def getModeList():
     cursor = mysql.connect().cursor()
