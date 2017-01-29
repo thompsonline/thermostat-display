@@ -14,6 +14,7 @@
 DIR='/home/john/thermostat-display'
 DAEMON=$DIR/routes.py
 DAEMON_NAME='thermdisplay'
+LOGFILE=/var/log/thermdisplay.log
 
 # Add any command line options for your daemon here
 DAEMON_OPTS=''
@@ -29,7 +30,7 @@ PIDFILE=/var/run/$DAEMON_NAME.pid
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games
 do_start () {
     log_daemon_msg "Starting system $DAEMON_NAME daemon"
-    start-stop-daemon --start --background --pidfile $PIDFILE --make-pidfile --user root --chuid root --exec $DAEMON --
+    start-stop-daemon --start --background --pidfile $PIDFILE --make-pidfile --user root --chuid root --startas /bin/bash -- -c "exec $DAEMON >> $LOGFILE 2>&1"
     log_end_msg $?
 }
 do_stop () {

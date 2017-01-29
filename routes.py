@@ -220,23 +220,6 @@ def getCurrentState(targTemp,targMode,curRoom,curProg,expTime):
 
     return (retStr1,retStr2,retStr3)
 
-def getAutoSetStatus():
-    try:
-        with open('autoSetDaemon.pid'):
-            pid = int(subprocess.Popen("cat autoSetDaemon.pid", shell=True, stdout=subprocess.PIPE).stdout.read().strip())
-            try:
-                os.kill(pid, 0)
-                return
-            except OSError:
-                print('daemon not running!')
-                subprocess.Popen("sudo %s autoSetDaemon.py start" % VIRTUALENV, shell=True)
-
-                return
-    except IOError:
-        subprocess.Popen("sudo %s autoSetDaemon.py start" % VIRTUALENV, shell=True)
-
-        return
-
 def getManualProgram():
     cursor = mysql.connect().cursor()
     cursor.execute("SELECT * FROM ManualProgram")
@@ -308,15 +291,13 @@ def main_page():
     else:
         heatBool = False
 
-    getAutoSetStatus()
-
     return render_template('index.html', **locals())
 
 @app.route('/', methods=['POST'])
 @basic_auth.required
 def handlePost():
-    print 'Here comes the form!!!!!'
-    print(request.form)
+    #print 'Here comes the form!!!!!'
+    #print(request.form)
 
     if 'changeRow' in request.form.keys():
         url = updateMan(request)
@@ -326,8 +307,8 @@ def handlePost():
         url = deleteProg(request)
 
     else:
-        print('You hit the round button!')
-        print(request)
+        #print('You hit the round button!')
+        #print(request)
         url = updateSet(request)
 
     return redirect(url)
@@ -363,7 +344,7 @@ def updateMan(request):
     cursor.close()
     conn.close()
 
-    print 'Rows in ManualProgram',_rowsInTable
+    #print 'Rows in ManualProgram',_rowsInTable
 
     return url_for('main_page')+'#download'
 
@@ -481,7 +462,7 @@ def sparkData(moduleID,location,temperature):
         return 'yes'
 
     location = str(location).replace('+', ' ')
-    print(location)
+    #print(location)
     conn = mysql.connect()
 
     cursor = conn.cursor()
@@ -494,4 +475,4 @@ def sparkData(moduleID,location,temperature):
     return 'yes'
 
 if __name__ == '__main__':
-    app.run("192.168.200.50",port=70, debug=True)
+    app.run("0.0.0.0",port=70, debug=False) # Listen on all interfaces
