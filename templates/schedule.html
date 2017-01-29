@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, height=device-height">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  
+  <title>Madison Thermostat</title>
+  
+  <!-- Bootstrap Core CSS -->
+  <!-- <link href="../static/css/bootstrap.min.css" rel="stylesheet"> -->
+  <link href="../static/css/bootstrap.css" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link href="../static/css/grayscale.css" rel="stylesheet">
+  
+  <!-- Custom Fonts -->
+  <link href="../static/font-awesome-4.1.0/css/font-awesome.min.css"
+    rel="stylesheet" type="text/css">
+  <link
+    href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"
+    rel="stylesheet" type="text/css">
+  <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700"
+    rel="stylesheet" type="text/css">
+  
+  <!-- jquery is kinda overkill, but I doubt anyone besides me will actually use this... -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{
+        url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+  
+  <script>
+    window.addEventListener("load",function() {
+    	// Set a timeout...
+    	setTimeout(function(){
+    		// Hide the address bar!
+    		window.scrollTo(0, 1);
+    	}, 0);
+    });
+  </script>
+</head>
+
+<body id="page-top" data-spy="scroll">
+    <!-- Download Section -->
+    <section id="download" class="content-section text-center">
+        <div class="row">
+        <div class="download-section">
+            <div class="container">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <h2>Program Schedules</h2>
+                    <h3>Seven Day Program</h3>
+                    <div></div>
+                    <table style="text: center; border: 1px solid white; width: 100%;">
+                       <tr style="border: 1px solid white; width: 100%;">
+                           <th align="center" style="align: center;">Entry</th>
+                           <th align="center">Day</th>
+                           <th align="center">Time</th>
+                           <th align="center">Room</th>
+                           <th align="center">Temperature</th>
+                           <th align="center">Mode</th>
+                       </tr>
+                    {% for row in manTable %}
+                       <tr>
+                           {% for item in row %}
+                                <td> {{ item }} </td>
+                            <!--<td> {{ value }} </td>-->
+                           {% endfor %}
+                       </tr>
+                    {% endfor %}
+                    </table>
+                    </div>
+                </div>
+            </div>
+            </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="container content-section text-center">
+        <div class="row">
+            <div class="col-lg-12 col-lg-offset-0">
+                <h2>Set Manual Schedule</h2>
+                {% set maxRows = manTable|length +1 %}
+                <!--add action to form that updates table-->
+                <form action={{ url_for('schedule_page') }} method="POST">
+                   <input type='hidden' name='direct' value="{{ url_for('schedule_page') }}" />
+                   Entry:<input style="color: black;border-radius: 6px;" type="number" name="changeRow" min="1" max= {{maxRows}} value="1">
+                   Weekday:<select name="weekDay" style="color:black;">
+                                  <option value="SUN" >Sunday</option>
+                                  <option value="MON" selected>Monday</option>
+                                  <option value="TUE" >Tuesday</option>
+                                  <option value="WED" >Wednesday</option>
+                                  <option value="THU" >Thursday</option>
+                                  <option value="FRI" >Friday</option>
+                                  <option value="SAT" >Saturday</option>
+                   </select>
+                   Time:<input style="color: black;border-radius: 6px;" type="time" name="opTime" value="07:00:00">
+
+                   Room:<select name="room" style="color:black;">
+                                  {% for roomStr in roomList %}
+                                    {% if roomStr==curRoom %}
+                                        <option style="color:red;" value={{ loop.index }} selected > {{ roomStr }}</option>
+                                    {% else %}
+                                        <option style="color:black;" value={{ loop.index }} > {{ roomStr }}</option>
+                                    {% endif %}
+                                  {% endfor %}
+                   </select>
+                   Temp:<input style="color: black;border-radius: 6px;" type="number" name="desTemp" min="50" max= "90" value="70">
+
+                   Mode:<select name="opMode" style="color:black;">
+                          {% for modeStr in modeList %}
+                            {% if modeStr==targMode %}
+                                <option style="color:red;" value="{{ modeStr }}" selected > {{ modeStr }}</option>
+                            {% else %}
+                                <option style="color:black;" value="{{ modeStr }}" > {{ modeStr }}</option>
+                            {% endif %}
+                          {% endfor %}
+                   </select>
+                   <input style="color: black;border-radius: 6px;" type="submit" value="Submit">
+                </form>
+
+                <form action={{ url_for('schedule_page') }} method="POST">
+                   <input type='hidden' name='direct' value="{{ url_for('schedule_page') }}" />
+                    Delete Row:<input style="color: black;border-radius: 6px;" type="number" name="deleteRow" min="1" max= {{manTable|length}} placeholder="1">
+                    <input style="color: black;border-radius: 6px;" type="submit" value="Delete">
+                </form>
+
+                <form id="mode-form" action={{ url_for('schedule_page') }} method="POST">
+                   <input type='hidden' name='direct' value="{{ url_for('schedule_page') }}" />
+                  {% for progStr in progList %}
+                    {% if progStr==curProg %}
+                        <input type="radio"  name="program" value="{{ progStr }}" checked > {{ progStr }}</option>
+                    {% else %}
+                        <input type="radio" name="program" value="{{ progStr }}" > {{ progStr }}</option>
+                    {% endif %}
+                  {% endfor %}
+
+                  <input style="color: black;border-radius: 6px;" type="submit" value="Change Mode">
+                </form>
+            </div>
+        </div>
+    </section>
+
+</body>
+
+</html>

@@ -53,10 +53,6 @@ basic_auth = BasicAuth(app)
 
 app.secret_key = config.get('main','secretKey')
 
-#print 'starting autoset'
-#subprocess.Popen("sudo %s autoSetDaemon.py start" % VIRTUALENV, shell=True)
-#print 'started autoset'
-
 def getModeList():
     cursor = mysql.connect().cursor()
 
@@ -270,8 +266,6 @@ def main_page():
     roomList = getRoomList()
     curProg,progList = getProgList()
 
-    manTable = getManualProgram()
-
     curModule,targTemp,targMode,expTime = getThermSet()
     curRoom = roomList[curModule-1]
 
@@ -293,10 +287,20 @@ def main_page():
 
     return render_template('index.html', **locals())
 
-@app.route('/', methods=['POST'])
+@app.route('/schedule.html')
 @basic_auth.required
-def handlePost():
-    #print 'Here comes the form!!!!!'
+def schedule_page():
+    manTable = getManualProgram()
+    roomList = getRoomList()
+    modeList = getModeList()
+    curProg,progList = getProgList()
+
+    return render_template('schedule.html', **locals())
+
+@app.route('/schedule.html', methods=['POST'])
+@basic_auth.required
+def handleSchedulePost():
+    #print 'Here comes the Schedule form!!!!!'
     #print(request.form)
 
     if 'changeRow' in request.form.keys():
@@ -310,6 +314,18 @@ def handlePost():
         #print('You hit the round button!')
         #print(request)
         url = updateSet(request)
+
+    return redirect(url)
+
+@app.route('/', methods=['POST'])
+@basic_auth.required
+def handlePost():
+    #print 'Here comes the form!!!!!'
+    #print(request.form)
+
+    #print('You hit the round button!')
+    #print(request)
+    url = updateSet(request)
 
     return redirect(url)
 
@@ -346,7 +362,10 @@ def updateMan(request):
 
     #print 'Rows in ManualProgram',_rowsInTable
 
-    return url_for('main_page')+'#download'
+    if request.form['direct'] != '':
+      return request.form['direct']
+    else:
+      return url_for('main_page')+'#download'
 
 
 def updateSet(request):
@@ -403,8 +422,10 @@ def deleteProg(request):
     cursor.close()
     conn.close()
 
-    return url_for('main_page')
-
+    if request.form['direct'] != '':
+      return request.form['direct']
+    else:
+      return url_for('main_page')
 
 @app.route('/_liveTargetTemp', methods= ['GET'])
 def updateTargetTemp():
