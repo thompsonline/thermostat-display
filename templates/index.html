@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, height=device-height">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  
+  <title>Madison Thermostat</title>
+  <style>
+  .intro {
+      background: url(/static/img/{{ backgroundImage }}) no-repeat bottom center scroll; 
+  }
+  </style>
+  
+  <!-- Bootstrap Core CSS -->
+  <!-- <link href="../static/css/bootstrap.min.css" rel="stylesheet"> -->
+  <link href="../static/css/bootstrap.css" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link href="../static/css/grayscale.css" rel="stylesheet">
+  
+  <!-- Custom Fonts -->
+  <link href="../static/font-awesome-4.1.0/css/font-awesome.min.css"
+    rel="stylesheet" type="text/css">
+  <link
+    href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"
+    rel="stylesheet" type="text/css">
+  <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700"
+    rel="stylesheet" type="text/css">
+  
+  <!-- jquery is kinda overkill, but I doubt anyone besides me will actually use this... -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{
+        url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+  
+  <script>
+    function setURL(url){
+        document.getElementById('iframe').src = url;
+    }
+
+    // This will update the current indoor temp as fed from getIndoorTemp.py
+   // Refreshes every 5 seconds
+    function updateTemp() {
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveTemp",
+        success : function(result){
+            $('#indoorTempDiv').html(result);
+        }
+    })
+    };
+    window.setInterval(function(){
+      updateTemp()
+    }, 5000);
+
+    function updateTargetTemp() {
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveTargetTemp",
+        success : function(result){
+            $('#targetTempDiv').html(result);
+        }
+    })
+    };
+    window.setInterval(function(){
+      updateTargetTemp()
+    }, 5000);
+
+    function updateStatus1() {
+
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveStatus1",
+        success : function(result){
+            $('#StatusSpan1').html(result);
+        }
+    })
+    };
+
+    window.setInterval(function(){
+      updateStatus1()
+    }, 10000);
+
+    function updateStatus2() {
+
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveStatus2",
+        success : function(result){
+            $('#StatusSpan2').html(result);
+        }
+    })
+    };
+
+    window.setInterval(function(){
+      updateStatus2()
+    }, 10000);
+
+    function updateStatus3() {
+
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveStatus3",
+        success : function(result){
+            $('#StatusSpan3').html(result);
+        }
+    })
+    };
+
+    window.setInterval(function(){
+      updateStatus3()
+    }, 10000);
+  </script>
+  
+  <script type=text/javascript src="/static/fastclick.js"></script>
+  
+  <script type="application/javascript">
+    window.addEventListener('load', function() {
+      var plus, minus;
+      var test;
+  
+      test = 84;
+  
+      plus = document.getElementById('plus');
+      minus = document.getElementById('minus');
+  
+      // Android 2.2 needs FastClick to be instantiated before the other listeners so that the stopImmediatePropagation hack can work.
+      FastClick.attach(minus);
+      FastClick.attach(plus);
+  
+      plus.addEventListener('click', function(event) {
+        increment(document.getElementById('target'))
+      }, false);
+  
+      minus.addEventListener('click', function(event) {
+        decrement(document.getElementById('target'))
+      }, false);
+    }, false);
+  </script>
+  
+  <!-- Makes them fancy buttons go -->
+  <script type=text/javascript src="/static/increment.js"></script>
+  <script type="text/javascript">
+      $('.myIframe').css('height', $(window).height()+'px');
+      $('.myIframe').css('width', $(window).width()+'px');
+  </script>
+  
+  <script>
+    window.addEventListener("load",function() {
+    	// Set a timeout...
+    	setTimeout(function(){
+    		// Hide the address bar!
+    		window.scrollTo(0, 1);
+    	}, 0);
+    });
+  </script>
+</head>
+
+<body id="page-top" data-spy="scroll">
+  <!-- Intro Header -->
+  <header class="intro">
+    <div class="intro-body" style="max-width: 100%;">
+      <div class="container">
+        <div class="row">
+          <form id="set-form" action={{ url_for('main_page') }} method="POST">
+            <div class="col-md-8 col-md-offset-2">
+              <div class="top-row">
+                <div class="top-center">
+                  <select style="color: black;" name="desired-mode">
+                    <!--style="color: black;" class = "highlight-select" name="desired-mode">-->
+                    {% for modeStr in modeList %} 
+                      {% if modeStr==targMode %}
+                        <option style="color: red;" value={{ modeStr }} selected>{{ modeStr }}</option> 
+                      {% else %}
+                        <option style="color: black;" value={{modeStr}} >{{ modeStr }}</option>
+                      {% endif %} 
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="top-left">
+                  <h1>Desired:</h1>
+                </div>
+                <div class="top-right">
+                  <h1>Actual:</h1>
+                </div>
+              </div>
+              <div class="temperature top-row">
+                <div class="temperature top-center">
+                  <p class="upper-p">Active For:</p>
+                  <select style="color: black;" class="upper-select"
+                    name="run-time">
+                    <option value="1">1 hour</option>
+                    <option value="2" selected>2 hours</option>
+                    <option value="3">3 hours</option>
+                    <option value="4">4 hours</option>
+                    <option value="5">5 hours</option>
+                    <option value="6">6 hours</option>
+                    <option value="7">7 hours</option>
+                    <option value="8">8 hours</option>
+                    <option value="12">12 hours</option>
+                    <option value="24">24 hours</option>
+                    <option value="48">48 hours</option>
+                  </select>
+                </div>
+                <div class="temperature top-left">
+                  <h1 id="targetTempDiv">{{targTemp}}&deg;</h1>
+                </div>
+                <div class="temperature top-right">
+                  <h1 id="indoorTempDiv">{{curTemp|safe}}</h1>
+                </div>
+              </div>
+
+              <div>
+                <a style="position: relative; left: -30px; top: 10px" class="temp-btn temp-btn-default" id="minus">-</a> 
+                <input type="submit" class="btn btn-circle page-scroll" id="target" value={{targTemp}} name="target" /> 
+                <a style="position: relative; left: 30px; top: 10px" class="temp-btn temp-btn-default" id="plus">+</a>
+              </div>
+
+              <div class="top-row">
+                <div class="top-center">
+                  Target Room:<br /> 
+                  <select style="color: black;" name="target-room"> 
+                    {% for roomStr in roomList %} 
+                      {% if roomStr==curRoom %}
+                        <option style="color: red;" value={{ loop.index }} selected>{{ roomStr }}</option> 
+                      {% else %}
+                        <option style="color: black;" value={{loop.index}} >{{ roomStr }}</option>
+                      {% endif %} 
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="top-left"></div>
+                <div class="top-right"></div>
+              </div>
+
+
+              <div class="top-row">
+                <div class="top-center">
+                    <span id="StatusSpan2">{{ modeString|safe }}</span>
+                </div>
+                <div class="top-left">
+                    <span id="StatusSpan1">{{ stateString }}</span>
+                </div>
+                <div class="top-right">
+                    <span id="StatusSpan3">{{ expString }}</span>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+</body>
+
+</html>

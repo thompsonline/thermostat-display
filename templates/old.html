@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Madison Thermostat</title>
+
+    <!-- Bootstrap Core CSS -->
+    <!-- <link href="../static/css/bootstrap.min.css" rel="stylesheet"> -->
+    <link href="../static/css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../static/css/grayscale.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../static/font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- jquery is kinda overkill, but I doubt anyone besides me will actually use this... -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="{{
+      url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+
+    <script>
+    function setURL(url){
+        document.getElementById('iframe').src = url;
+    }
+    </script>
+
+    <!-- This will update the current indoor temp as fed from getIndoorTemp.py
+	 Refreshes every 5 seconds -->
+    <script>
+    function updateTemp() {
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveTemp",
+        success : function(result){
+            $('#indoorTempDiv').html(result);
+        }
+    })
+    };
+    window.setInterval(function(){
+      updateTemp()
+    }, 5000);
+    </script>
+
+    <script>
+    function updateTargetTemp() {
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveTargetTemp",
+        success : function(result){
+            $('#targetTempDiv').html(result);
+        }
+    })
+    };
+    window.setInterval(function(){
+      updateTargetTemp()
+    }, 5000);
+    </script>
+
+    <script>
+    function updateStatus1() {
+
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveStatus1",
+        success : function(result){
+            $('#StatusSpan1').html(result);
+        }
+    })
+    };
+
+    window.setInterval(function(){
+      updateStatus1()
+    }, 10000);
+    </script>
+
+    <script>
+    function updateStatus2() {
+
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveStatus2",
+        success : function(result){
+            $('#StatusSpan2').html(result);
+        }
+    })
+    };
+
+    window.setInterval(function(){
+      updateStatus2()
+    }, 10000);
+    </script>
+
+    <script>
+    function updateStatus3() {
+
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+        url : $SCRIPT_ROOT + "/_liveStatus3",
+        success : function(result){
+            $('#StatusSpan3').html(result);
+        }
+    })
+    };
+
+    window.setInterval(function(){
+      updateStatus3()
+    }, 10000);
+    </script>
+
+
+
+    <script type='application/javascript' src="../fastclick.js"></script>
+
+    <script type=text/javascript src="/static/fastclick.js"></script>
+
+    <script type="application/javascript">
+	window.addEventListener('load', function() {
+		var plus, minus;
+		var test;
+
+		test = 84;
+
+		plus = document.getElementById('plus');
+		minus = document.getElementById('minus');
+
+		// Android 2.2 needs FastClick to be instantiated before the other listeners so that the stopImmediatePropagation hack can work.
+		FastClick.attach(minus);
+		FastClick.attach(plus);
+
+		plus.addEventListener('click', function(event) {
+			increment(document.getElementById('target'))
+		}, false);
+
+		minus.addEventListener('click', function(event) {
+			decrement(document.getElementById('target'))
+		}, false);
+	}, false);
+    </script>
+
+    <!-- Makes them fancy buttons go -->
+    <script type=text/javascript src="/static/increment.js"></script>
+
+    <script type="text/javascript" language="javascript">
+    $('.myIframe').css('height', $(window).height()+'px');
+    $('.myIframe').css('width', $(window).width()+'px');
+    </script>
+
+
+</head>
+
+
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top" onload="updateTemp(); updateStatus1();
+updateStatus2(); updateStatus3(); updateTargetTemp();">
+
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-custom navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-main-collapse">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <a class="navbar-brand page-scroll" href="#page-top">
+                    <i class="fa fa-play-circle"></i>  <span class="light">Change</span> Temperature
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-right navbar-main-collapse">
+                <ul class="nav navbar-nav">
+                    <!-- Hidden li included to remove active class from about link when scrolled up past about section -->
+                    <li class="hidden">
+                        <a href="#page-top"></a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#about">Analysis</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#download">View Schedules</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#contact">Reprogram</a>
+                    </li>
+                </ul>
+            </div>
+             <!--/.navbar-collapse-->
+        </div>
+         <!--/.container-->
+    </nav>
+
+
+    <!-- Intro Header -->
+    <header class="intro">
+        <div class="intro-body" style="max-width:100%;">
+            <div class="container">
+                <div class="row">
+                    <form id="set-form" action={{ url_for('main_page') }} method="POST">
+                    <div class="col-md-8 col-md-offset-2">
+
+
+                        <div class="top-row">
+                           <div class="top-center">
+                              <select style="color: black;" name="desired-mode"><!--style="color: black;" class = "highlight-select" name="desired-mode">-->
+                                  {% for modeStr in modeList %}
+                                    {% if modeStr==targMode %}
+                                        <option style="color:red;" value={{ modeStr }} selected > {{ modeStr }}</option>
+                                    {% else %}
+                                        <option style="color:black;" value={{ modeStr }} > {{ modeStr }}</option>
+                                    {% endif %}
+                                  {% endfor %}
+                              </select>
+
+                           </div>
+                           <div class="top-left">
+                               <h1>Desired:</h1>
+                           </div>
+                           <div class="top-right">
+                               <h1>Actual:</h1>
+                           </div>
+                        </div>
+
+
+
+                         <div class="top-row">
+                           <div class="top-center">
+                             <p class="upper-p">Active For:</p>
+                              <select style="color:black;" class="upper-select" name="run-time" >
+                                  <option value="1" >1 hour</option>
+                                  <option value="2" selected>2 hours</option>
+                                  <option value="3" >3 hours</option>
+                                  <option value="4" >4 hours</option>
+                                  <option value="5" >5 hours</option>
+                                  <option value="6" >6 hours</option>
+                                  <option value="7" >7 hours</option>
+                                  <option value="8" >8 hours</option>
+                                  <option value="12" >12 hours</option>
+                                  <option value="24" >24 hours</option>
+                                  <option value="48" >48 hours</option>
+                              </select>
+                           </div>
+                           <div class="top-left">
+                               <h1 id="targetTempDiv"></h1>
+                               <!--<h1>{{targTemp}}</h1>-->
+                           </div>
+                           <div class="top-right">
+                               <h1 id="indoorTempDiv"></h1>
+                               <!--<h1>{{curTemp}}</h1>-->
+                           </div>
+                        </div>
+
+                        <div>
+                        <a style = "position: relative; left: -30px; top: 10px" class="temp-btn temp-btn-default" id="minus">-</a>
+
+                        <input type="submit" class="btn btn-circle page-scroll" id="target" value={{targTemp}} name="target"/>
+
+                        <a style = "position: relative; left: 30px; top: 10px" class="temp-btn temp-btn-default" id="plus">+</a>
+                        </div>
+
+                        <div class="top-row">
+                           <div class="top-center">
+                              Target Room:<br />
+                              <select style="color:black;" name="target-room">
+                                  {% for roomStr in roomList %}
+                                    {% if roomStr==curRoom %}
+                                        <option style="color:red;" value={{ loop.index }} selected > {{ roomStr }}</option>
+                                    {% else %}
+                                        <option style="color:black;" value={{ loop.index }} > {{ roomStr }}</option>
+                                    {% endif %}
+                                  {% endfor %}
+                              </select>
+                           </div>
+                           <div class="top-left">
+
+                           </div>
+                           <div class="top-right">
+
+                           </div>
+                        </div>
+
+
+                        <div class="top-row">
+                           <div class="top-center">
+                                <!--<p>{{ modeString }}</p>-->
+                               <p><span id="StatusSpan2"></span></p>
+                           </div>
+                           <div class="top-left">
+                                <p><span id="StatusSpan1"></span></p>
+                               <!--<p>{{ stateString }}</p>-->
+                           </div>
+                           <div class="top-right">
+                               <p><span id="StatusSpan3"></span></p>
+                               <!--<p>{{ expString }}</p>-->
+                           </div>
+                        </div>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="container content-section text-center">
+        <div class="row">
+            <div class="col-lg-12 col-lg-offset-0">
+                <h2>Data Analysis</h2>
+                <!--<img src="static/MainFloor.png" alt="Temperature Plot" style="width:800px;height:auto">-->
+                <!--<img src="static/MainFloor.png" alt="Temperature Plot" style="max-width:100%; max-height:100%;">-->
+
+                <div>
+                    {% for link in plotLinks %}
+                        <input type="button" class="temp-btn temp-btn-default" value="{{ link['name'] }}" onclick="setURL('{{ link['url'] }}')" />
+                    {% endfor %}
+                </div>
+                <div>
+                    <iframe class="myIframe" style="max-width:100%;" id="iframe" width="800" height="600" frameborder="0" seamless="seamless" scrolling="no" src={{ plotLinks[2]['url'] }}></iframe>
+                    <!--<iframe class="myIframe" id="iframe" width="100%" height="100%" frameborder="0" seamless="seamless" scrolling="no" src={{ plotLinks[2]['url'] }}></iframe>-->
+                </div>
+                <div>
+                    <span>Compressor Hours Today: {{ dayHours }}  |</span>
+                    <span>|  Compressor Hours This Month: {{ monthHours }}</span>
+                </div>
+                {% if heatBool %}
+                <div>
+                    <span>Auxilliary Hours Today: {{ dayAux }}  |</span>
+                    <span>|  Auxilliary Hours This Month: {{ monthAux }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="content-section text-center">
+        <div class="row">
+        <div class="download-section">
+            <div class="container">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <h2>Program Schedules</h2>
+                    <h3>Seven Day Program</h3>
+                    <div></div>
+                    <table style="text: center; border: 1px solid white; width: 100%;">
+                       <tr style="border: 1px solid white; width: 100%;">
+                           <th align="center" style="align: center;">Entry</th>
+                           <th align="center">Day</th>
+                           <th align="center">Time</th>
+                           <th align="center">Room</th>
+                           <th align="center">Temperature</th>
+                           <th align="center">Mode</th>
+                       </tr>
+                    {% for row in manTable %}
+                       <tr>
+                           {% for item in row %}
+                                <td> {{ item }} </td>
+                            <!--<td> {{ value }} </td>-->
+                           {% endfor %}
+                       </tr>
+                    {% endfor %}
+                    </table>
+                    </div>
+                </div>
+            </div>
+            </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="container content-section text-center">
+        <div class="row">
+            <div class="col-lg-12 col-lg-offset-0">
+                <h2>Set Manual Schedule</h2>
+                {% set maxRows = manTable|length +1 %}
+                <!--add action to form that updates table-->
+                <form action={{ url_for('main_page') }} method="POST">
+                   Entry:<input style="color: black;border-radius: 6px;" type="number" name="changeRow" min="1" max= {{maxRows}} value="1">
+                   Weekday:<select name="weekDay" style="color:black;">
+                                  <option value="SUN" >Sunday</option>
+                                  <option value="MON" selected>Monday</option>
+                                  <option value="TUE" >Tuesday</option>
+                                  <option value="WED" >Wednesday</option>
+                                  <option value="THU" >Thursday</option>
+                                  <option value="FRI" >Friday</option>
+                                  <option value="SAT" >Saturday</option>
+                   </select>
+                   Time:<input style="color: black;border-radius: 6px;" type="time" name="opTime" value="07:00:00">
+
+                   Room:<select name="room" style="color:black;">
+                                  {% for roomStr in roomList %}
+                                    {% if roomStr==curRoom %}
+                                        <option style="color:red;" value={{ loop.index }} selected > {{ roomStr }}</option>
+                                    {% else %}
+                                        <option style="color:black;" value={{ loop.index }} > {{ roomStr }}</option>
+                                    {% endif %}
+                                  {% endfor %}
+                   </select>
+                   Temp:<input style="color: black;border-radius: 6px;" type="number" name="desTemp" min="50" max= "90" value="70">
+
+                   Mode:<select name="opMode" style="color:black;">
+                          {% for modeStr in modeList %}
+                            {% if modeStr==targMode %}
+                                <option style="color:red;" value="{{ modeStr }}" selected > {{ modeStr }}</option>
+                            {% else %}
+                                <option style="color:black;" value="{{ modeStr }}" > {{ modeStr }}</option>
+                            {% endif %}
+                          {% endfor %}
+                   </select>
+                   <input style="color: black;border-radius: 6px;" type="submit" value="Submit">
+                </form>
+
+                <form action={{ url_for('main_page') }} method="POST">
+                    Delete Row:<input style="color: black;border-radius: 6px;" type="number" name="deleteRow" min="1" max= {{manTable|length}} placeholder="1">
+                    <input style="color: black;border-radius: 6px;" type="submit" value="Delete">
+                </form>
+
+                <form id="mode-form" action={{ url_for('main_page') }} method="POST">
+                  {% for progStr in progList %}
+                    {% if progStr==curProg %}
+                        <input type="radio"  name="program" value="{{ progStr }}" checked > {{ progStr }}</option>
+                    {% else %}
+                        <input type="radio" name="program" value="{{ progStr }}" > {{ progStr }}</option>
+                    {% endif %}
+                  {% endfor %}
+
+                  <input style="color: black;border-radius: 6px;" type="submit" value="Change Mode">
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <div id="map"></div>
+
+    <!-- jQuery Version 1.11.0 -->
+    <script src="/js/jquery-1.11.0.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/js/bootstrap.min.js"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="/js/jquery.easing.min.js"></script>
+
+    <script src="/js/dropdown.js"></script>
+
+    <!-- Google Maps API Key - Use your own API key to enable the map feature. More information on the Google Maps API can be found at https://developers.google.com/maps/ -->
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBbP5nx4Aiey8bWiJ0PCXIv_hGIkTMbZF0"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="/js/grayscale.js"></script>
+</body>
+
+</html>

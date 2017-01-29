@@ -1,0 +1,46 @@
+[main]
+
+# This is your secret key for deployment. It should be
+# very secret. Pound on your keyboard randomly to generate
+# a good one. Or Google the proper way to generate a Flask
+# secret key.
+secretKey = <Flask Secret Key>
+
+# I have set up http basic authentication. It's not the
+# most secure thing in the world, but I think it's good
+# for me.
+authUser = <user id user will enter on web interface>
+authPass = <password user will enter on web interface>
+
+# Enter all of your plotly information
+plotlyUser = <plotly user>
+plotlyKey = <plotley key>
+plotlyPlot1 = https://plot.ly/~thompsonline/5 <change to plotly url>
+plotlyPlot2 = https://plot.ly/~thompsonline/7
+plotlyPlot3 = https://plot.ly/~thompsonline/9
+plotlyPlot4 = https://plot.ly/~thompsonline/11
+
+# You have the option to have both a deployment and
+# development environment. If you will not be using
+# a development environment, simply set "developing"
+# to False
+developing = False
+devEnv = /usr/bin/python
+deployEnv = /usr/bin/python
+
+# MySQL Credentials
+mysqlUser = <mysql user>
+mysqlPass = <mysql password>
+mysqlDatabase = <mysql database>
+mysqlHost = localhost
+mysqlPort = 3306
+mysqlBackup = True
+mysqlBackupDir = /tmp
+
+# Weather setup. You can look up your NOAA Code at:
+# http://w1.weather.gov/xml/current_obs/seek.php?state=az&Find=Find
+# WeatherModuleID should be the moduleID field that you have labeled
+# as "outside".
+NOAAWeather = True
+NOAACode = <NOAA local weather code>
+WeatherModuleID = 2

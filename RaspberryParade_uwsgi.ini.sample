@@ -1,0 +1,22 @@
+[uwsgi]
+#application's base folder
+base = <directory for application>
+
+#python module to import
+app = routes
+module = %(app)
+
+home = <directory for application>
+pythonpath = %(base)
+
+#socket file's location
+socket = <directory for application>/%n.sock
+
+#permissions for the socket file
+chmod-socket = 666
+
+#the variable that holds a flask application inside the module imported at line #6
+callable = app
+
+#location of log files
+logto = %(base)/logs/uwsgi/%n.log
