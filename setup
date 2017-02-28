@@ -1,0 +1,229 @@
+Load Raspberian Jesse Lite
+Raspberry Pi Config
+	Expand file system
+	Set hostname
+	Uncheck autologin
+	Interfaces
+		Camera: Disable
+		SSH: enable
+		SPI: disable
+		I2C: disable
+		Serial: disable
+		1-wire: disable
+		Remote GPIO: disable
+	Performance
+		GPU Memory: 112
+	Localization
+		Locale
+		Timezone
+		WiFi Country
+Connect to WiFi
+sudo useradd -m <user> -G sudo
+sudo passwd <user>
+reboot
+login as <user>
+Setup vi editor
+	vi /home/<user>/.vimrc
+		uncomment as needed
+		add "set nocp"
+sudo deluser pi
+sudo apt-get update
+Protect against MITM, spoofing and other threats
+	sudo vi /etc/sysctl.conf
+		Uncomment these lines
+			net.ipv4.conf.all.accept_redirects = 0
+			net.ipv6.conf.all.accept_redirects = 0
+		Uncomment these lines
+			net.ipv4.conf.default.rp_filter=1
+			net.ipv4.conf.all.rp_filter=1
+		Uncomment these lines
+			net.ipv4.conf.all.accept_source_route = 0
+			net.ipv6.conf.all.accept_source_route = 0
+
+Setup a status IP address
+	Add this to /etc/dhcpcd.conf
+		interface eth0
+
+		static ip_address=192.168.200.100/24
+		static routers=192.168.200.1
+		static domain_name_servers=192.168.200.1
+
+		interface wlan0
+
+		static ip_address=192.168.200.50/24
+		static routers=192.168.200.1
+		static domain_name_servers=192.168.200.1
+	reboot
+	ifconfig
+
+sudo apt-get install dos2unix
+
+sudo apt-get install ufw
+sudo ufw default deny incoming
+sudo ufw allow from 192.168.200.0/24 to any port 22 proto tcp
+sudo ufw allow from any to any port 80 proto tcp
+sudo ufw allow from any to any port 443 proto tcp
+Open port 50 for thermostat app
+	sudo ufw allow from any to any port 50 proto tcp
+sudo ufw enable
+
+Setup postfix
+	edit /etc/postfix/sasl_password
+		[smtp.gmail.com]:587	username@gmailcom:password
+	chmod 600 /etc/postfix/sasl_password
+	edit /etc/postfix/main.cf
+		alias_maps = hash:/etc/aliases
+		myhostname = <host>
+		relayhost = [smtp.gmail.com]:587
+		smtp_use_tls=yes
+		smtp_sasl_security_options = 
+		smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+		smtp-tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+		inet_interfaces = loopback-only
+		inet_protocols = ipv4
+	sudo postmap /etc/postfix/sasl_passwd
+	add "root: <user>" to /etc/aliases
+	sudo newaliases
+	sudo /etc/init.d/postfix start or restart
+	enable "less secure apps" in Gmail
+	mail -s "test" recipient@domain.com
+	
+
+Setup tripwire
+	sudo apt-get install tripwire
+		Mail config: internet site
+		system mail name: <hostname>
+	sudo apt-get install mailutils
+	sudo tripwire --init
+	sudo sh -c 'tripwire --check > tripchk
+        sudo grep Filename tripchk > check.out
+	edit /etc/tripwire/twpol.txt and remove all lines that show in the grep
+	sudo twadmin -m P /etc/tripwire/twpol.txt
+	sudo tripwire --init
+	sudo tripwire --check
+	sudo crontab -e
+		00 3 * * * /usr/sbin/tripwire --check ! mail -s "Tripwire report for `uname -n`" your_email@you-pi.com
+
+Setup Git
+	git config --global user.name "thompsonline"
+	git config --global user.email "john.thompson@start-thinking.com"
+
+Get thermy code
+cd ~
+git clone https://thompsonline/thermy-autoupdate
+cd thermy-autoupdate
+./update
+
+Setup apache 
+	sudo apt-get update
+	sudo apt-get install apache2
+Test apache: browse to pi
+Remove default page
+	sudo rm /var/www/html/index.html
+	sudo touch /var/www/html/index.html
+
+Install mysql
+	sudo apt-get install mysql-server
+	mysql_secure_installation -- don't change password
+
+
+Install php
+	sudo apt-get install php5 php-pear php5-mysql
+
+sudo /etc/init.d/apache2 restart
+
+Test:
+	sudo vi /var/www/html/info.php
+		<?php
+		phpinfo();
+		?>
+	sudo rm /var/www/html/info.php
+
+Install phpmyadmin
+	sudo apt-get install phpmyadmin
+	sudo vi /etc/apache2/apache2.conf
+		Include /etc/phpmyadmin/apache.conf
+	sudo /etc/init.d/apache2 restart
+	browse to http://<server>/phpmyadmin/setup to run setup
+
+	add this to /etc/phpmyadmin/apache.conf in the /usr/share/phpmyadmin directory section
+	    <IfModule mod_authz_core.c>
+        	<IfModule mod_authn_file.c>
+	            AuthType Basic
+        	    AuthName "phpMyAdmin"
+	            AuthUserFile /etc/phpmyadmin/htpasswd.admin
+        	</IfModule>
+	        Require valid-user
+	    </IfModule>
+	sudo htpasswd -c /etc/phpmyadmin/htpasswd.admin <user> to create password for <user>
+	sudo service apache2 restart
+
+Load Thermy Tables
+	Create user called thermostat with a database called Thermostat
+	copy contents of thermostat-control/tables.sql from Git and load SQL to Thermostat database
+	INSERT INTO `ModuleInfo` (`moduleID`, `strDescription`, `firmwareVer`, `tempSense`, `humiditySense`, `lightSense`, `motionSense`) VALUES (1, 'Dining Room', '1', 1, 0, 0, 0), (2, 'Downstairs', '1', 1, 1, 0, 0);
+	INSERT INTO `OperationModes` (`mode`) VALUES ('Cool'), ('Fan'), ('Heat'), ('Off');
+
+INSERT INTO `ProgramTypes` (`program`, `active`) VALUES
+('7-Day', 1),
+('Manual', 0);
+
+Setup Thermostat Credentials
+	Update all config.txt files for all thermostat-* modules
+		Set Mysql user id and password
+
+install Python extensions
+	sudo apt-get update
+	sudo apt-get upgrade
+	sudo apt-get install gcc python-dev python-pip
+	sudo pip install psutil
+	sudo pip install ISStreamer
+	sudo apt-get install python-mysqldb
+	sudo apt-get install python-flask
+	sudo pip install Flask-BasicAuth
+	sudo pip install flask-mysql
+	sudo pip install flask-lesscss
+	sudo pip install plotly
+
+Fix lesscss
+	sudo vi /usr/local.lib/python2.7/dist-packages/flaskext/lesscss.py
+		change app.static_path to app.static_folder
+
+Test thermostat-rebootmonitor: Run it and check log file and InitialState data points
+Install reboot monitor in cron
+	sudo crontab -e
+		Add to last line: @reboot /home/<user>/thermostat-rebootmonitor/monitor_reboot.py
+
+
+Test thermonstat-control: start in foreground and check log
+Enable thermostat-control daemon
+	sudo cp thermostat-control/init.d/thermcontrol.sh /etc/init.d/
+	sudo update-rc.d thermcontrol.sh defaults
+	sudo /etc/init.d/thermcontrol.sh start
+
+Test thermostat-display: start in foreground and browse to Pi
+	sudo cp thermostat-display/init.d/thermdisplay.sh /etc/init.d/
+	sudo update-rc.d thermdisplay.sh defaults
+	sudo /etc/init.d/thermcontrol.sh start
+
+Install thermostat-monitorwifi
+	sudo crontab -e
+		add @reboot /home/<user>/thermostat-monitorwifi.py
+
+Install thermostat-plotter
+	Install latest Python Weather API
+		wget https://launchpad.net/python-weather-api/trunk/0.3.8/+download/pywapi-0.3.8.tar.gz
+		sudo python setup.py install
+
+	sudo cp thermostat-plotter/init.d/thermplot.sh /etc/init.d/
+	sudo update-rc.d thermplot.sh defaults
+	sudo /etc/init.d/thermplot.sh start
+
+
+Setup remote sensor database logger php program in /var/www/html
+	Add a mysql user
+		Add user sensor with random password and insert only access to SensorData table	
+	Configure thermostat-savesensor with mysql user and password
+
+change runstate of RPi to CLI only
+Setup SSH keys
