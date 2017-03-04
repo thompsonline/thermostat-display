@@ -104,6 +104,11 @@ Setup tripwire
 	sudo crontab -e
 		00 3 * * * /usr/sbin/tripwire --check ! mail -s "Tripwire report for `uname -n`" your_email@you-pi.com
 
+Setup fail2ban
+	sudo apt-get install fail2ban
+	sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+	add local network to ignoreip line of /etc/fail2ban/jail.local
+
 Setup Git
 	git config --global user.name "thompsonline"
 	git config --global user.email "john.thompson@start-thinking.com"
