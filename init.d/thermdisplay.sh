@@ -11,7 +11,7 @@
 ### END INIT INFO
 
 # Change the next 3 lines to suit where you install your script and what you want to call it
-DIR='/home/john/thermostat-display'
+DIR='/home/john/thermy/thermostat-display'
 DAEMON=$DIR/routes.py
 DAEMON_NAME='thermdisplay'
 LOGFILE=/var/log/thermdisplay.log
