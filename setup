@@ -90,6 +90,7 @@ Setup postfix
 	
 
 Setup tripwire
+	https://www.digitalocean.com/community/tutorials/how-to-use-tripwire-to-detect-server-intrusions-on-an-ubuntu-vps
 	sudo apt-get install tripwire
 		Mail config: internet site
 		system mail name: <hostname>
