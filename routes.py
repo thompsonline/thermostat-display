@@ -253,7 +253,7 @@ def getPlotInfo():
         return (plotLinks,'Error','Daemon', 'Error','Daemon')
 
 @app.route('/')
-@basic_auth.required
+#@basic_auth.required
 def main_page():
     now = datetime.datetime.now()
     month = now.month
@@ -288,7 +288,7 @@ def main_page():
     return render_template('index.html', **locals())
 
 @app.route('/schedule.html')
-@basic_auth.required
+#@basic_auth.required
 def schedule_page():
     manTable = getManualProgram()
     roomList = getRoomList()
@@ -298,7 +298,7 @@ def schedule_page():
     return render_template('schedule.html', **locals())
 
 @app.route('/schedule.html', methods=['POST'])
-@basic_auth.required
+#@basic_auth.required
 def handleSchedulePost():
     #print 'Here comes the Schedule form!!!!!'
     #print(request.form)
@@ -318,7 +318,7 @@ def handleSchedulePost():
     return redirect(url)
 
 @app.route('/', methods=['POST'])
-@basic_auth.required
+#@basic_auth.required
 def handlePost():
     #print 'Here comes the form!!!!!'
     #print(request.form)
@@ -476,7 +476,7 @@ def updateStatus3():
     return retStrings[2]
 
 @app.route('/_sparkTest/<moduleID>/<location>/<temperature>', methods= ['GET', 'POST'])
-@basic_auth.required
+#@basic_auth.required
 def sparkData(moduleID,location,temperature):
     temperature = '%0.1f'%float(temperature)
     if float(temperature) < -100.0:
@@ -496,4 +496,4 @@ def sparkData(moduleID,location,temperature):
     return 'yes'
 
 if __name__ == '__main__':
-    app.run("0.0.0.0",port=70, debug=False) # Listen on all interfaces
+    app.run("192.168.1.10",port=70, debug=True) # Listen on all interfaces
