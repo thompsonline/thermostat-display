@@ -20,6 +20,10 @@ plotlyPlot2 = https://plot.ly/~thompsonline/7
 plotlyPlot3 = https://plot.ly/~thompsonline/9
 plotlyPlot4 = https://plot.ly/~thompsonline/11
 
+# To detect connectivity, use an IP address or URL that will return a web page if
+# the thermostat is connected to WiFi
+WiFiDetectAddress=192.168.1.1
+
 # You have the option to have both a deployment and
 # development environment. If you will not be using
 # a development environment, simply set "developing"
