@@ -39,6 +39,8 @@ PLOTLY_ID2 = os.path.split(config.get('main','plotlyPlot2'))[-1]
 PLOTLY_ID3 = os.path.split(config.get('main','plotlyPlot3'))[-1]
 PLOTLY_ID4 = os.path.split(config.get('main','plotlyPlot4'))[-1]
 
+WIFIDETECTADDRESS = os.path.split(config.get('main', 'WiFiDetectAddress'))[-1]
+
 DEVELOPING = config.getboolean('main','developing')
 
 if DEVELOPING:
@@ -252,6 +254,20 @@ def getPlotInfo():
 
         return (plotLinks,'Error','Daemon', 'Error','Daemon')
 
+def getWiFiConnected():
+    returnValue = False
+    import httplib
+    conn = httplib.HTTPConnection(WIFIDETECTADDRESS, timeout=2)
+    try:
+      conn.request("HEAD", "/")
+      returnValue = True
+    except:
+      returnValue = False
+    finally:
+      if (conn != None):
+        conn.close()
+    return returnValue
+    
 @app.route('/')
 #@basic_auth.required
 def main_page():
@@ -284,6 +300,11 @@ def main_page():
         heatBool = True
     else:
         heatBool = False
+        
+    if getWiFiConnected():
+      wiFiConnected = 'avail'
+    else:
+      wiFiConnected = 'unavail';
 
     return render_template('index.html', **locals())
 
