@@ -360,11 +360,12 @@ footer div {
 
 #wifistatus {
   float:left;
+  padding-left: 10px;
 }
 #info {
   float: right;
   position: absolute;
-  right: 0px;
+  right: 10px;
   top: 5px;
   font-size: 1.5em;
 }
@@ -372,7 +373,7 @@ footer div {
   margin: auto;
   text-align: center;
   width: 200px;
-  font-size: 1.5em;
+  font-size: 1.8em;
 }
 
 ::-moz-selection {

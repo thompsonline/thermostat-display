@@ -11,6 +11,7 @@ import ConfigParser
 
 import os
 import sys
+import time
 
 import datetime
 import cPickle as pickle
@@ -306,6 +307,13 @@ def main_page():
     else:
       wiFiConnected = 'unavail';
 
+    currentTime = time.strftime('%-I:%M');
+    if time.strftime('%p') == 'PM':
+      currentTime = currentTime + 'p'
+    else :
+      currentTime = currentTime + 'a'
+    currentDate = time.strftime(' %a %b %-d, %Y');
+    currentTimeDate = currentTime + currentDate;
     return render_template('index.html', **locals())
 
 @app.route('/schedule.html')
