@@ -351,13 +351,28 @@ footer {
 
 footer p {
     margin: 0;
-}
+}  
 
 footer div {
-  float:left;
-  padding: 2px 2px;
   font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  padding: 2px 2px;
+}
 
+#wifistatus {
+  float:left;
+}
+#info {
+  float: right;
+  position: absolute;
+  right: 0px;
+  top: 5px;
+  font-size: 1.5em;
+}
+#timedate {
+  margin: auto;
+  text-align: center;
+  width: 200px;
+  font-size: 1.5em;
 }
 
 ::-moz-selection {
