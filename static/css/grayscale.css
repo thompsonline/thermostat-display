@@ -134,6 +134,7 @@ a:focus {
 }
 
 .intro {
+    float:left;
     display: table;
     width: 100%;
     height: 100%;
@@ -150,6 +151,8 @@ a:focus {
 }
 
 .intro .intro-body {
+float:left;
+clear:both;
     display: table-cell;
     padding: 0px 0px 0px 0px;
     /* padding: 100px 0px 0px 0px; */
@@ -369,11 +372,21 @@ footer div {
   top: 5px;
   font-size: 1.5em;
 }
+.failedsensor {
+  float: left;
+  font-size: 1.5em;
+  background-color: #e32;
+  margin-top: -5px;
+  margin-left: 10px;
+  height: 50px;
+  padding: 12px;
+}
 #timedate {
   margin: auto;
   text-align: center;
-  width: 200px;
+  width: 280px;
   font-size: 1.8em;
+  margin-top: 5px;
 }
 
 ::-moz-selection {
@@ -435,15 +448,22 @@ body {
     user-select: none;
 }
 
+.tempchange {
+  border-color: #219ab3 !important;
+  color: #219ab3 !important;
+}
+
 .temp-btn-default {
-    border: 1px solid #219ab3;
-    color: #219ab3;
+/*    border: 2px solid #219ab3;
+    color: #219ab3; */
+    border: 2px solid #fff;
+    color: #fff;
     background-color: transparent;
 }
 
 .temp-btn-default:hover,
 .temp-btn-default:focus {
-    border: 1px solid #219ab3;
+    border: 2px solid #219ab3;
     cursor: pointer;
     outline: 0;
     color: #000;
@@ -475,4 +495,113 @@ body {
 }
 #indoorTempDiv {
 	font-size: 2em;
+}
+
+#currenttemp {
+  /* border: solid 1px #ccc; */
+  float:left;
+  width: 300px;
+  font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  text-align: center;
+  height:300px;
+}
+#currenttemp #value {
+  font-weight: 400;
+  font-size: 15em;
+}
+#currenttemp #title {
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+}
+#currenttemp #humidity {
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+}
+#settemp {
+  /* border: solid 1px #ccc; */
+  float:left;
+  width: 200px;
+  font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  text-align: center;
+  vertical-align: middle;
+  height:300px;
+}
+#settemp #title {
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+}
+#settemp #button {
+  margin-top: 56px;
+}  
+#tempChange {
+  visibility:hidden;
+}
+#settempmode {
+  font-size: 1.2em;  
+  padding-top: 5px;
+}
+
+#setmode {
+  /* border: solid 1px #ccc; */
+  float:left;
+  width: 150px;
+  font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  text-align: center;
+  vertical-align: middle;
+  height:300px;
+}
+#setmode #button {
+  margin-top: 114px;
+}
+#outdoortemp {
+  /* border: solid 1px #ccc; */
+  float:left;
+  font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  text-align: center;
+  height:300px;
+}
+#outdoortemp #value {
+  font-weight: 400;
+  font-size: 2em;
+}
+#outdoortemp #title {
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+  padding-bottom: 78px;
+  
+}
+
+#sensorselect {
+  clear:both;
+  width: 300px;
+  /* border: solid 1px #ccc; */
+  float:left;
+  font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+#sensorselect #title {
+  width: 100%;
+  text-align:center;
+  font-size: 2em;
+}
+#sensorselect #selector {
+  font-size: 1.2em;
+  text-align: center;
+}
+#sensorselect #selector input {
+  margin-right: 5px;
+  margin-left: 8px;
+}
+#activefortitle {
+  font-size: 1.2em;
+  text-align: center;
+  padding-top: 28px;
+  margin: 0;
+}
+#activeforselect {
+  color: #000;
+  font-size: 1.4em;
 }

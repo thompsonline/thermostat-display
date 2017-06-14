@@ -7,6 +7,9 @@ from flaskext.mysql import MySQL
 from flaskext.lesscss import lesscss
 import subprocess
 
+import logging
+import logging.handlers
+
 import ConfigParser
 
 import os
@@ -22,6 +25,36 @@ os.chdir(dname)
 
 config = ConfigParser.ConfigParser()
 config.read(dname+"/config.txt")
+
+LOG_LOGFILE = config.get('logging', 'logfile')
+logLevelConfig = config.get('logging', 'loglevel')
+if logLevelConfig == 'info':
+    LOG_LOGLEVEL = logging.INFO
+elif logLevelConfig == 'warn':
+    LOG_LOGLEVEL = logging.WARNING
+elif logLevelConfig ==  'debug':
+    LOG_LOGLEVEL = logging.DEBUG
+
+LOGROTATE = config.get('logging', 'logrotation')
+LOGCOUNT = int(config.get('logging', 'logcount'))
+
+logger = logging.getLogger(__name__)
+logger.setLevel(LOG_LOGLEVEL)
+handler = logging.handlers.TimedRotatingFileHandler(LOG_LOGFILE, when=LOGROTATE, backupCount=LOGCOUNT)
+formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+class MyLogger(object):
+        def __init__(self, logger, level):
+                self.logger = logger
+                self.level = level
+
+        def write(self, message):
+                # Only log if there is a message (not just a new line)
+                if message.rstrip() != "":
+                        self.logger.log(self.level, message.rstrip())
+
 
 app = Flask(__name__)
 lesscss(app)
@@ -122,12 +155,13 @@ def getProg():
 def getRoomList():
     cursor = mysql.connect().cursor()
 
-    cursor.execute("SELECT * FROM ModuleInfo")
+    #cursor.execute("SELECT ModuleID, strDescription FROM ModuleInfo ORDER BY moduleID")
+    cursor.execute("SELECT distinct ModuleInfo.ModuleID, ModuleInfo.strDescription, sd.moduleID FROM ModuleInfo  LEFT JOIN (SELECT moduleID, timeStamp FROM SensorData WHERE timestamp > date_sub(now(), interval 15 minute))  sd ON ModuleInfo.moduleID = sd.moduleID ORDER BY ModuleInfo.moduleID")
     rooms = cursor.fetchall()
 
     cursor.close()
 
-    return [str(room[1]) for room in rooms]
+    return [[str(room[1]),room[0],room[2]] for room in rooms]
 
 def getProgList():
     cursor = mysql.connect().cursor()
@@ -143,10 +177,10 @@ def getProgList():
 def getThermSet():
     cursor = mysql.connect().cursor()
 
-    cursor.execute("SELECT * FROM ThermostatSet")
+    cursor.execute("SELECT moduleID, targetTemp, targetMode, expiryTime FROM ThermostatSet")
     thermSet=cursor.fetchall()
 
-    return thermSet[0][1:-1]
+    return [thermSet[0][0],thermSet[0][1],thermSet[0][2],thermSet[0][3]]
 
 def getCurrentTemp(curModule):
     cursor = mysql.connect().cursor()
@@ -284,17 +318,35 @@ def main_page():
     curProg,progList = getProgList()
 
     curModule,targTemp,targMode,expTime = getThermSet()
-    curRoom = roomList[curModule-1]
-
+    
+    curRoom = -1
+    # find the current room in the thermostat set list. Room list is a list of all rooms. When index 0 = index 3, the room sensor is active
+    for testRoom in roomList:
+      if (testRoom[1] == curModule and testRoom[2] == curModule):
+        curRoom = testRoom 
+        break
+        
+    # if the current room isn't in the room list (inactive/fault), default to the first one that is active
+    if (curRoom == -1):
+    	for testRoom in roomList:
+    		if (testRoom[1] != 0 and testRoom[1] == testRoom[2]):
+    		  curRoom = testRoom
+    		  break
+    
     stateString, modeString, expString = getCurrentState(targTemp,targMode,curRoom,curProg,expTime)
 
     curTemp = getCurrentTemp(curModule)
     curHumid = getCurrentHumid(curModule)
-    if curHumid > 0:
-        curTemp = '%2.1f&deg;/%d%%' % (curTemp, int(curHumid))
-    else:
-        curTemp = str(curTemp)+'&deg'
+    if (curHumid == None): curHumid = 0
+    curTemp = ('%d&deg;' % (round(curTemp,0)))
+    curHumid = ('%d%%' % (round(curHumid,0)))
 
+    outsideTemp = getCurrentTemp(0)
+    outsideHumid = getCurrentHumid(0)
+    if (outsideHumid == None): outsideHumid = 0
+    outsideTemp = ('%d' % (round(outsideTemp,0)))
+    outsideHumid = ('%d' % (round(outsideHumid,0)))  
+    
     plotLinks, monthHours, dayHours, monthAux, dayAux = getPlotInfo()
 
     if 'Heat' in targMode:
@@ -349,11 +401,11 @@ def handleSchedulePost():
 @app.route('/', methods=['POST'])
 #@basic_auth.required
 def handlePost():
-    #print 'Here comes the form!!!!!'
-    #print(request.form)
+    logger.debug( 'Here comes the form!!!!!')
+    logger.debug(request.form)
 
-    #print('You hit the round button!')
-    #print(request)
+    logger.debug('You hit the round button!')
+    logger.debug(request)
     url = updateSet(request)
 
     return redirect(url)
@@ -398,7 +450,9 @@ def updateMan(request):
 
 
 def updateSet(request):
+    action = request.form['action']
     newMode = request.form['desired-mode']
+
 
     expTime = datetime.datetime.now()+ datetime.timedelta(hours=int(request.form['run-time']))
 
@@ -409,7 +463,10 @@ def updateSet(request):
 
     cursor=conn.cursor()
 
-    cursor.execute("UPDATE ThermostatSet SET moduleID=%s, targetTemp=%s, targetMode='%s', expiryTime='%s' WHERE entryNo=1"
+    if action == 'mode':
+      cursor.execute("UPDATE ThermostatSet SET targetMode='%s' WHERE entryNo=1" % (str(newMode)))
+    else:
+      cursor.execute("UPDATE ThermostatSet SET moduleID=%s, targetTemp=%s, targetMode='%s', expiryTime='%s' WHERE entryNo=1"
                        %(str(targetRoom),str(targetTemp),str(newMode),str(expTime)))
 
     conn.commit()
@@ -465,11 +522,7 @@ def updateTargetTemp():
 def updateTemp():
     curModule,targTemp,targMode,expTime = getThermSet()
     curTemp = getCurrentTemp(curModule)
-    curHumid = getCurrentHumid(curModule)
-    if curHumid > 0:
-        return ('%2.1f&deg;/%d%%' % (curTemp, int(curHumid)))
-    else:
-        return (str(curTemp)+'&deg')
+    return ('%d&deg;' % (round(curTemp,0)))
 
 @app.route('/_liveStatus1', methods= ['GET'])
 def updateStatus1():
@@ -523,6 +576,8 @@ def sparkData(moduleID,location,temperature):
     cursor.close()
     conn.close()
     return 'yes'
+
+logger.info("Starting")
 
 if __name__ == '__main__':
     app.run("192.168.1.10",port=70, debug=True) # Listen on all interfaces

@@ -114,6 +114,11 @@ Setup Git
 	git config --global user.name "thompsonline"
 	git config --global user.email "john.thompson@start-thinking.com"
 
+LCD Brighness
+sudo pip install rpi_backlight
+sudo nano /etc/udev/rules.d/backlight-permissions.rules
+	Add this line: SUBSYSTEM=="backlight",RUN+="/bin/chmod 666 /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"
+
 Get thermy code
 cd ~
 git clone https://thompsonline/thermy-autoupdate

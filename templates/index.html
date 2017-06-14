@@ -10,7 +10,7 @@
   
   <title>Madison Thermostat</title>
   <style>
-  .intro {
+  body#page-top {
       background: url(/static/img/{{ backgroundImage }}) no-repeat bottom center scroll; 
   }
   </style>
@@ -117,28 +117,17 @@
   
   <script type=text/javascript src="/static/fastclick.js"></script>
   
-  <script type="application/javascript">
-    window.addEventListener('load', function() {
-      var plus, minus;
-      var test;
-  
-      test = 84;
-  
-      plus = document.getElementById('plus');
-      minus = document.getElementById('minus');
-  
-      // Android 2.2 needs FastClick to be instantiated before the other listeners so that the stopImmediatePropagation hack can work.
-      FastClick.attach(minus);
-      FastClick.attach(plus);
-  
-      plus.addEventListener('click', function(event) {
-        increment(document.getElementById('target'))
-      }, false);
-  
-      minus.addEventListener('click', function(event) {
-        decrement(document.getElementById('target'))
-      }, false);
-    }, false);
+  <script>
+    var currentModeIndex = 0;
+    var modes = [];
+    var modeSetTimer = null;
+    var roomSetTimer = null;
+    
+    function changeMode() {
+      currentModeIndex++;
+      if (currentModeIndex >= modes.length) currentModeIndex = 0;
+      $('#mode').html(modes[currentModeIndex]);
+    }
   </script>
   
   <!-- Makes them fancy buttons go -->
@@ -149,107 +138,239 @@
   </script>
   
   <script>
-    window.addEventListener("load",function() {
-    	// Set a timeout...
-    	setTimeout(function(){
-    		// Hide the address bar!
-    		window.scrollTo(0, 1);
-    	}, 0);
+    function incrementValue(element) {
+      element.text(Number(element.text()) + 1);
+      if (element.text() > 100) element.text(100);
+    }
+    function decrementValue(element) {
+      element.text(Number(element.text()) - 1);
+      if (element.text() < 40) element.text(40);
+    }
+    
+    function reloadPage() {
+      $.ajax({
+        url: window.location.href,
+        headers: {
+            "Pragma": "no-cache",
+            "Expires": -1,
+            "Cache-Control": "no-cache"
+        }
+      }).done(function () {
+        window.location.reload(true);
+      });
+    }
+  
+    window.addEventListener("load", function() {
+      $('#targetbutton').click(function() {
+        if ($('#tempChange').css('visibility') == 'hidden') {
+          $('#tempChange').css('visibility','visible');
+          $('#targetbutton').css('color','#219ab3').css('border-color','#219ab3');
+        } else {
+          $('#tempChange').css('visibility','hidden').css('color','#fff').css('border-color','#fff');
+          $('#target').val($('#targetbutton').text());
+          $('#set-form').submit();
+        }
+      });
+    
+      var plus, minus;
+  
+      plus = document.getElementById('plus');
+      minus = document.getElementById('minus');
+      mode = document.getElementById('mode');
+  
+      // Android 2.2 needs FastClick to be instantiated before the other listeners so that the stopImmediatePropagation hack can work.
+      FastClick.attach(minus);
+      FastClick.attach(plus);
+      FastClick.attach(mode);
+  
+      plus.addEventListener('click', function(event) {
+        incrementValue($('#targetbutton'))
+      }, false);
+  
+      minus.addEventListener('click', function(event) {
+        decrementValue($('#targetbutton'))
+      }, false);
+      
+      mode.addEventListener('click', function(event) {
+        $('#mode').css('border-color','#219ab3').css('color','#219ab3');
+        if (modeSetTimer != null) {
+          clearTimeout(modeSetTimer);
+          modeSetTimer = null;
+        }
+        changeMode();
+        // Start a timer and submit the form in 5 seconds unless button is clicked again
+        modeSetTimer = setTimeout(function() {
+          $('#mode').css('border-color','#fff').css('color','#fff');   
+          $('#desired-mode').val(modes[currentModeIndex]);
+          $('#action').val('mode');
+          var res = $('#set-form').submit();
+        }, 5000);
+      }, false);
+      
+      {% for modeStr in modeList %} 
+        modes.push('{{ modeStr }}');
+      {% endfor %}
+      currentModeIndex = modes.indexOf('{{ targMode }}');
+      $('#mode').html(modes[currentModeIndex]);
+      
+      $(":input[name='target-room-selector']").click(function() {
+        selected = $(this).val();
+        $('#target-room').val(selected);
+        if (roomSetTimer != null) {
+          clearTimeout(roomSetTimer);
+          roomSetTimer = null;
+        }
+        roomSetTimer = setTimeout(function() {
+          $('#set-form').submit();
+        }, 5000);
+      });
+
+
+      // Set a timeout...
+      setTimeout(function(){
+        // Hide the address bar!
+        window.scrollTo(0, 1);
+      }, 0);
+      
     });
   </script>
 </head>
 
 <body id="page-top" data-spy="scroll">
+  <form id="set-form" action={{ url_for('main_page') }} method="POST">
+    <input type='hidden' id='desired-mode' name='desired-mode' value='{{ targMode }}' />
+    <input type='hidden' id='target' name='target' value='{{ targTemp }}' />
+    <input type='hidden' id='target-room' name='target-room' value='{{ curRoom[1] }}' />
+    <input type='hidden' id='action' name='action' value='' />
   <!-- Intro Header -->
   <section class="intro">
-    <div class="intro-body" style="max-width: 100%;">
+    <div id='currenttemp'>
+      <div id='title'>
+        indoor temperature
+      </div>
+      <div id='value'>
+        {{curTemp|safe}}
+      </div>
+      <div id='humidity'>
+       indoor humidity {{curHumid|safe}}
+      </div>
+    </div>
+    <div id='settemp'>
+      <div id='title'>
+        set temp
+      </div>
+      <div id='button'>
+          <div>
+            <a style="padding-top: 13px;" class="btn btn-circle page-scroll" id="targetbutton" name="targetbutton">{{targTemp}}</a> 
+            <div id='settempmode'>
+              cool-to
+            </div>
+          </div>
+          <div id='tempChange'>
+            <a style="position: relative; left: -30px; top: 10px" class="temp-btn temp-btn-default tempchange" id="minus">-</a> 
+            <a style="position: relative; left: 30px; top: 10px" class="temp-btn temp-btn-default tempchange" id="plus">+</a>
+            <p id="activefortitle">Active For:</p>
+            <select id='activeforselect' name="run-time">
+              <option value="1">1 hour</option>
+              <option value="2" selected>2 hours</option>
+              <option value="3">3 hours</option>
+              <option value="4">4 hours</option>
+              <option value="5">5 hours</option>
+              <option value="6">6 hours</option>
+              <option value="7">7 hours</option>
+              <option value="8">8 hours</option>
+              <option value="12">12 hours</option>
+              <option value="24">24 hours</option>
+              <option value="48">48 hours</option>
+            </select>
+          </div>
+      </div>
+    </div>
+    <div id='setmode'>
+      <div id='button'>
+        <a style="position: relative; top: 10px" class="temp-btn temp-btn-default" id="mode">Off</a> 
+      </div>
+    </div>
+    <div id='outdoortemp'>
+      <div id='title'>
+        outdoors
+      </div>
+      <div id='value'>
+        {{ outsideTemp }}&deg;
+      </div>
+      <div id='value'>
+        {{outsideHumid }}%
+      </div>
+    </div>    
+    <div id='sensorselect'>
+      <div id='title'>
+        sensor selection
+      </div>
+      <div id='selector'>
+        {% for roomStr,roomID,sensorID in roomList %} 
+          {% if loop.index-1 != 0 %} 
+            {% if roomID == sensorID %}
+              {% if roomID == curRoom[1] %}
+                <input type='radio' name='target-room-selector' id='room{{ loop.index-1 }}' value={{ roomID }} checked>{{ roomStr }}</input>
+              {% else %}
+                <input type='radio' name='target-room-selector' id='room{{ loop.index-1 }}' value={{ roomID }} >{{ roomStr }}</input>
+              {% endif %} 
+            {% endif %} 
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    
+    <div class="intro-body" style="max-width: 100%; visibility:hidden; height:0px">
       <div class="container">
         <div class="row">
-          <form id="set-form" action={{ url_for('main_page') }} method="POST">
-            <div class="col-md-8 col-md-offset-2">
-              <div class="top-row">
-                <div class="top-center">
-                  <select style="color: black;" name="desired-mode">
-                    <!--style="color: black;" class = "highlight-select" name="desired-mode">-->
-                    {% for modeStr in modeList %} 
-                      {% if modeStr==targMode %}
-                        <option style="color: red;" value={{ modeStr }} selected>{{ modeStr }}</option> 
-                      {% else %}
-                        <option style="color: black;" value={{modeStr}} >{{ modeStr }}</option>
-                      {% endif %} 
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="top-left">
-                  <h1>Desired:</h1>
-                </div>
-                <div class="top-right">
-                  <h1>Actual:</h1>
-                </div>
-              </div>
-              <div class="temperature top-row">
-                <div class="temperature top-center">
-                  <p class="upper-p">Active For:</p>
-                  <select style="color: black;" class="upper-select"
-                    name="run-time">
-                    <option value="1">1 hour</option>
-                    <option value="2" selected>2 hours</option>
-                    <option value="3">3 hours</option>
-                    <option value="4">4 hours</option>
-                    <option value="5">5 hours</option>
-                    <option value="6">6 hours</option>
-                    <option value="7">7 hours</option>
-                    <option value="8">8 hours</option>
-                    <option value="12">12 hours</option>
-                    <option value="24">24 hours</option>
-                    <option value="48">48 hours</option>
-                  </select>
-                </div>
-                <div class="temperature top-left">
-                  <h1 id="targetTempDiv">{{targTemp}}&deg;</h1>
-                </div>
-                <div class="temperature top-right">
-                  <h1 id="indoorTempDiv">{{curTemp|safe}}</h1>
-                </div>
-              </div>
-
-              <div>
-                <a style="position: relative; left: -30px; top: 10px" class="temp-btn temp-btn-default" id="minus">-</a> 
-                <input type="submit" class="btn btn-circle page-scroll" id="target" value={{targTemp}} name="target" /> 
-                <a style="position: relative; left: 30px; top: 10px" class="temp-btn temp-btn-default" id="plus">+</a>
-              </div>
-
-              <div class="top-row">
-                <div class="top-center">
-                  Target Room:<br /> 
-                  <select style="color: black;" name="target-room"> 
-                    {% for roomStr in roomList %} 
-                      {% if roomStr==curRoom %}
-                        <option style="color: red;" value={{ loop.index }} selected>{{ roomStr }}</option> 
-                      {% else %}
-                        <option style="color: black;" value={{loop.index}} >{{ roomStr }}</option>
-                      {% endif %} 
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="top-left"></div>
-                <div class="top-right"></div>
-              </div>
-
-
-              <div class="top-row">
-                <div class="top-center">
-                    <span id="StatusSpan2">{{ modeString|safe }}</span>
-                </div>
-                <div class="top-left">
-                    <span id="StatusSpan1">{{ stateString }}</span>
-                </div>
-                <div class="top-right">
-                    <span id="StatusSpan3">{{ expString }}</span>
-                </div>
+          <div class="col-md-8 col-md-offset-2">
+            <div class="temperature top-row">
+              <div class="temperature top-center">
+                <p class="upper-p">Active For:</p>
+                <select style="color: black;" class="upper-select"
+                  name="run-timex">
+                  <option value="1">1 hour</option>
+                  <option value="2" selected>2 hours</option>
+                  <option value="3">3 hours</option>
+                  <option value="4">4 hours</option>
+                  <option value="5">5 hours</option>
+                  <option value="6">6 hours</option>
+                  <option value="7">7 hours</option>
+                  <option value="8">8 hours</option>
+                  <option value="12">12 hours</option>
+                  <option value="24">24 hours</option>
+                  <option value="48">48 hours</option>
+                </select>
               </div>
             </div>
-          </form>
+              <div class="top-row">
+              <div class="top-center">
+                Target Room:<br /> 
+                <select style="color: black;" name="target-roomxx"> 
+                  {% for roomStr in roomList %} 
+                    {% if roomStr==curRoom %}
+                      <option style="color: red;" value={{ loop.index }} selected>{{ roomStr }}</option> 
+                    {% else %}
+                      <option style="color: black;" value={{loop.index}} >{{ roomStr }}</option>
+                    {% endif %} 
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+              <div class="top-row">
+              <div class="top-center">
+                  <span id="StatusSpan2">{{ modeString|safe }}</span>
+              </div>
+              <div class="top-left">
+                  <span id="StatusSpan1">{{ stateString }}</span>
+              </div>
+              <div class="top-right">
+                  <span id="StatusSpan3">{{ expString }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -258,14 +379,23 @@
     <div id='wifistatus'>
       <img src='../static/img/lime-wifi-32-{{ wiFiConnected }}.png' />
     </div>
+    {% for roomStr,roomID,sensorID in roomList %} 
+      {% if roomID != 0 and roomID != sensorID %}
+        <div class='failedsensor'>
+          {{ roomStr }}
+        </div>
+      {% endif %}
+    {% endfor %}
     <div id='timedate'>
       {{ currentTimeDate }}
     </div>
     <div id='info'>
-      <img src='../static/img/info.png' />
+      <a onclick="reloadPage(); return false;" >
+        <img src='../static/img/info.png' />
+      </a>
     </div>
   </footer>
-
+</form>
 </body>
 
 </html>
