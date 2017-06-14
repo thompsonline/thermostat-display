@@ -557,6 +557,26 @@ def updateStatus3():
     retStrings = getCurrentState(targTemp,targMode,curRoom,curProg,expTime)
     return retStrings[2]
 
+@app.route('/_timedate', methods= ['GET'])
+def updateTimeDate():
+    currentTime = time.strftime('%-I:%M');
+    if time.strftime('%p') == 'PM':
+      currentTime = currentTime + 'p'
+    else :
+      currentTime = currentTime + 'a'
+    currentDate = time.strftime(' %a %b %-d, %Y');
+    currentTimeDate = currentTime + currentDate;
+
+    return currentTimeDate
+
+@app.route('/_wifistatus', methods= ['GET'])
+def updateWiFiStatus():
+    if getWiFiConnected():
+      wiFiConnected = 'avail'
+    else:
+      wiFiConnected = 'unavail'
+    return wiFiConnected
+
 @app.route('/_sparkTest/<moduleID>/<location>/<temperature>', methods= ['GET', 'POST'])
 #@basic_auth.required
 def sparkData(moduleID,location,temperature):

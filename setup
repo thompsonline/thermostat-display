@@ -239,3 +239,7 @@ Setup remote sensor database logger php program in /var/www/html
 
 change runstate of RPi to CLI only
 Setup SSH keys
+
+Setup pigpio autostart
+	sudo crontab -e
+		@reboot pigpiod
