@@ -577,6 +577,17 @@ def updateWiFiStatus():
       wiFiConnected = 'unavail'
     return wiFiConnected
 
+@app.route('/_failedsensors', methods= ['GET'])
+def updateFailedSensors():
+    roomList = getRoomList()
+    failedList = []
+    
+    for roomStr, roomID, sensorID in roomList:
+      if roomID != 0 and roomID != sensorID:
+        failedList.append([str(roomID), roomStr])
+
+    return jsonify(failedList)
+
 @app.route('/_sparkTest/<moduleID>/<location>/<temperature>', methods= ['GET', 'POST'])
 #@basic_auth.required
 def sparkData(moduleID,location,temperature):

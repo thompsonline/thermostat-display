@@ -372,6 +372,9 @@ footer div {
   top: 5px;
   font-size: 1.5em;
 }
+#failedsensorlist {
+  padding: 0;
+}
 .failedsensor {
   float: left;
   font-size: 1.5em;

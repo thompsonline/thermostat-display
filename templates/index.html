@@ -134,6 +134,48 @@
       updateWiFiStatus()
     }, 5000);
     
+    // Update the failed sensor list every 10 minutes
+    function updateFailedSensors() {
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+      $.ajax({
+        url: $SCRIPT_ROOT + "/_failedsensors",
+        success: function(result) {
+          // Iterate through all failed sensor display objects and remove those that aren't failed any longer
+          $('#failedsensorlist>div').each(function(index) {
+            objid = $(this).attr('id');
+            id = objid.indexOf('failedsensor') != -1 ? objid.substring(12) : '';
+            if (id != '') {
+              // Search for this id in the list of failed sensors
+              found = false;
+              for (var key in result) {
+                if (key == id) {
+                  found = true;
+                  break;
+                }
+              }
+              if (!found) {
+                // id not found so it is no longer failing. Remove it
+                $('#failedsensor'+id).remove();
+              }
+            }
+          });
+       
+          // Iterate through the failed list and add any sensors to the display that aren't already there
+          for (var key in result) {
+            obj = $('#failedsensor'+key);
+            if (obj.length == 0) {
+              // Display element for this sensor doesn't exist
+              $('#failedsensorlist').append("<div class='failedsensor' id='failedsensor"+key+"'>"+result[key]+"</div>");
+            }
+          }
+        }
+      });
+    };
+    window.setInterval(function() {
+      updateFailedSensors()
+    }, 5000);
+    
+    
   </script>
   
   <script type=text/javascript src="/static/fastclick.js"></script>
@@ -392,13 +434,15 @@
     <div id='wifistatus'>
       <img id='wifistatusimage' src='../static/img/lime-wifi-32-{{ wiFiConnected }}.png' />
     </div>
-    {% for roomStr,roomID,sensorID in roomList %} 
-      {% if roomID != 0 and roomID != sensorID %}
-        <div class='failedsensor'>
-          {{ roomStr }}
-        </div>
-      {% endif %}
-    {% endfor %}
+    <div id='failedsensorlist'>
+      {% for roomStr,roomID,sensorID in roomList %} 
+        {% if roomID != 0 and roomID != sensorID %}
+          <div class='failedsensor' id='failedsensor{{ roomID }}'>
+            {{ roomStr }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
     <div id='timedate'>
       {{ currentTimeDate }}
     </div>
