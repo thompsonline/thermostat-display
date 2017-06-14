@@ -212,7 +212,6 @@ def getCurrentState(targTemp,targMode,curRoom,curProg,expTime):
 
     lastReading = thermState[0][0]
 
-
     if (datetime.datetime.now()-lastReading).total_seconds() > 600:
         retStr1 = '<span class="message_alert_error">Malfunction</span>'
 
@@ -309,9 +308,9 @@ def main_page():
     now = datetime.datetime.now()
     month = now.month
     if (month < 4 or month > 11):
-      backgroundImage = "Madison.winter.320.480.jpg"
+      backgroundImage = "Madison.winter.800.480.jpg"
     else:
-      backgroundImage = "Madison.spring.320.480.jpg"
+      backgroundImage = "Madison.spring.800.480.jpg"
       
     modeList = getModeList()
     roomList = getRoomList()

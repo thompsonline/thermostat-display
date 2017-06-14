@@ -10,8 +10,17 @@
   
   <title>Madison Thermostat</title>
   <style>
-  body#page-top {
-      background: url(/static/img/{{ backgroundImage }}) no-repeat bottom center scroll; 
+  #background {
+      background: url(/static/img/{{ backgroundImage }}) no-repeat top center scroll; 
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      z-index: -1;
+      opacity: 0.5;
   }
   </style>
   
@@ -66,46 +75,6 @@
       updateTargetTemp()
     }, 5000);
 
-    // Update the system status ever 10 seconds
-    function updateStatus1() {
-        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-        $.ajax({
-          url : $SCRIPT_ROOT + "/_liveStatus1",
-          success : function(result){
-            $('#StatusSpan1').html(result);
-          }
-        })
-    };
-    window.setInterval(function(){
-      updateStatus1()
-    }, 10000);
-
-    function updateStatus2() {
-        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-        $.ajax({
-          url : $SCRIPT_ROOT + "/_liveStatus2",
-          success : function(result){
-            $('#StatusSpan2').html(result);
-          }
-        })
-    };
-    window.setInterval(function(){
-      updateStatus2()
-    }, 10000);
-
-    function updateStatus3() {
-        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-        $.ajax({
-          url : $SCRIPT_ROOT + "/_liveStatus3",
-          success : function(result){
-            $('#StatusSpan3').html(result);
-          }
-        })
-    };
-    window.setInterval(function(){
-      updateStatus3()
-    }, 10000);
-    
     // Update the date and time with the server date/time
     function updateTimeDate() {
       $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
@@ -298,7 +267,7 @@
     <input type='hidden' id='target-room' name='target-room' value='{{ curRoom[1] }}' />
     <input type='hidden' id='action' name='action' value='' />
   <!-- Intro Header -->
-  <section class="intro">
+  <div class="intro">
     <div id='currenttemp'>
       <div id='title'>
         indoor temperature
@@ -375,61 +344,8 @@
         {% endfor %}
       </div>
     </div>
-
-    
-    <div class="intro-body" style="max-width: 100%; visibility:hidden; height:0px">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-8 col-md-offset-2">
-            <div class="temperature top-row">
-              <div class="temperature top-center">
-                <p class="upper-p">Active For:</p>
-                <select style="color: black;" class="upper-select"
-                  name="run-timex">
-                  <option value="1">1 hour</option>
-                  <option value="2" selected>2 hours</option>
-                  <option value="3">3 hours</option>
-                  <option value="4">4 hours</option>
-                  <option value="5">5 hours</option>
-                  <option value="6">6 hours</option>
-                  <option value="7">7 hours</option>
-                  <option value="8">8 hours</option>
-                  <option value="12">12 hours</option>
-                  <option value="24">24 hours</option>
-                  <option value="48">48 hours</option>
-                </select>
-              </div>
-            </div>
-              <div class="top-row">
-              <div class="top-center">
-                Target Room:<br /> 
-                <select style="color: black;" name="target-roomxx"> 
-                  {% for roomStr in roomList %} 
-                    {% if roomStr==curRoom %}
-                      <option style="color: red;" value={{ loop.index }} selected>{{ roomStr }}</option> 
-                    {% else %}
-                      <option style="color: black;" value={{loop.index}} >{{ roomStr }}</option>
-                    {% endif %} 
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-              <div class="top-row">
-              <div class="top-center">
-                  <span id="StatusSpan2">{{ modeString|safe }}</span>
-              </div>
-              <div class="top-left">
-                  <span id="StatusSpan1">{{ stateString }}</span>
-              </div>
-              <div class="top-right">
-                  <span id="StatusSpan3">{{ expString }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  </div>
+  <div id='background'><br /></div>
   <footer>
     <div id='wifistatus'>
       <img id='wifistatusimage' src='../static/img/lime-wifi-32-{{ wiFiConnected }}.png' />
