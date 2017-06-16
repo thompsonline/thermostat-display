@@ -92,7 +92,7 @@ app.secret_key = config.get('main','secretKey')
 def getModeList():
     cursor = mysql.connect().cursor()
 
-    cursor.execute("SELECT * FROM OperationModes")
+    cursor.execute("SELECT mode FROM OperationModes order by displayorder")
     modes=cursor.fetchall()
 
     cursor.close()

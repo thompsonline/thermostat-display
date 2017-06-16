@@ -159,6 +159,12 @@
       currentModeIndex++;
       if (currentModeIndex >= modes.length) currentModeIndex = 0;
       $('#mode').html(modes[currentModeIndex]);
+      if (modes[currentModeIndex] == "Off" || modes[currentModeIndex] == 'Fan') {
+        // Hide the set temp controls
+        $('#settemp').css('visibility','hidden');
+      } else {
+        $('#settemp').css('visibility','visible');
+      }
     }
   </script>
   
