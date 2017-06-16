@@ -182,13 +182,26 @@
         window.location.reload(true);
       });
     }
+    
+    var tempSetTimeout = null; // Timer to cancel setting the temp if the button isn't pressed
   
+    // If after the temp set button is pressed, there hasn't been any activity around setting the temp for
+    // 60 seconds, cancel the operation by reloading the page.
+    function resetTempSetTimeout() {
+      if (tempSetTimeout != null) clearTimeout(tempSetTimeout);
+			tempSetTimeout = setTimeout(function() {
+			  reloadPage();
+			}, 60000);
+		}
+    
     window.addEventListener("load", function() {
       $('#targetbutton').click(function() {
         if ($('#tempChange').css('visibility') == 'hidden') {
           $('#tempChange').css('visibility','visible');
           $('#targetbutton').css('color','#219ab3').css('border-color','#219ab3');
+          resetTempSetTimeout(); // Start the temp set timeout
         } else {
+          if (tempSetTimeout != null) clearTimeout(tempSetTimeout);  // Stop the timeout timer because we've done something
           $('#tempChange').css('visibility','hidden').css('color','#fff').css('border-color','#fff');
           $('#target').val($('#targetbutton').text());
           $('#set-form').submit();
@@ -270,13 +283,13 @@
   <div class="intro">
     <div id='currenttemp'>
       <div id='title'>
-        indoor temperature
+        {{ curRoom[0] }}
       </div>
       <div id='value'>
         {{curTemp|safe}}
       </div>
       <div id='humidity'>
-       indoor humidity {{curHumid|safe}}
+        humidity {{curHumid|safe}}
       </div>
     </div>
     <div id='settemp'>
@@ -294,7 +307,7 @@
             <a style="position: relative; left: -30px; top: 10px" class="temp-btn temp-btn-default tempchange" id="minus">-</a> 
             <a style="position: relative; left: 30px; top: 10px" class="temp-btn temp-btn-default tempchange" id="plus">+</a>
             <p id="activefortitle">Active For:</p>
-            <select id='activeforselect' name="run-time">
+            <select id='activeforselect' name="run-time" onchange="resetTempSetTimeout(); return false; ">
               <option value="1">1 hour</option>
               <option value="2" selected>2 hours</option>
               <option value="3">3 hours</option>
