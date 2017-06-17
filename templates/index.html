@@ -49,11 +49,12 @@
     // This will update the current indoor temp as fed from getIndoorTemp.py
     // Refreshes every 5 seconds
     function updateTemp() {
+        console.log("updating temp");
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         $.ajax({
         url : $SCRIPT_ROOT + "/_liveTemp",
         success : function(result){
-            $('#indoorTempDiv').html(result);
+            $('#currenttemp>#value').html(result);
         }
     })
     };
