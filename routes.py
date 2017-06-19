@@ -159,21 +159,20 @@ def getRoomList():
     cursor.execute("SELECT distinct ModuleInfo.ModuleID, ModuleInfo.strDescription, sd.moduleID FROM ModuleInfo  LEFT JOIN (SELECT moduleID, timeStamp FROM SensorData WHERE timestamp > date_sub(now(), interval 15 minute))  sd ON ModuleInfo.moduleID = sd.moduleID ORDER BY ModuleInfo.moduleID")
     rooms = cursor.fetchall()
     
-    roomlist = [[room[1],room[0],room[2], ""] for room in rooms]
+    roomlist = [[room[1],room[0],room[2], "", ""] for room in rooms]
     
     for room in roomlist:
-      cursor.execute("SELECT max(timeStamp) from SensorData where moduleID = %s" % room[1]);
-      times = cursor.fetchall()
+      cursor.execute("SELECT timeStamp, temperature from SensorData where moduleID = %s order by readingID DESC limit 1,1" % room[1]);
+      timetemps = cursor.fetchall()
       
-      stamp = times[0][0]
+      stamp = timetemps[0][0]
       
       room[3] = "%d/%02d/%4d %02d:%02d:%02d" % (int(stamp.month), int(stamp.day), int(stamp.year), int(stamp.hour), int(stamp.minute), int(stamp.second))
+      room[4] = int(round(timetemps[0][1]))
       
     cursor.close()
     
-    finalrooms = [[room[1],room[0],room[2], room[3]] for room in roomlist]
-
-    return [[room[1],room[0],room[2], room[3]] for room in roomlist]
+    return [[room[1],room[0],room[2], room[3], room[4]] for room in roomlist]
 
 def getProgList():
     cursor = mysql.connect().cursor()

@@ -360,13 +360,13 @@
         sensor selection
       </div>
       <div id='selector'>
-        {% for roomID, roomStr,sensorID,lastreading in roomList %} 
+        {% for roomID, roomStr,sensorID,lastreading,lasttemp in roomList %} 
           {% if roomID != 0 %} 
             {% if roomID == sensorID %}
               {% if roomID == curRoom[0] %}
-                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' checked>{{ roomStr }}</input>
+                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' checked>{{ roomStr }}<span> ({{ lasttemp }}&deg;)</span></input>
               {% else %}
-                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' >{{ roomStr }}</input>
+                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' >{{ roomStr }}<span> ({{ lasttemp }}&deg;)</span></input>
               {% endif %} 
             {% endif %} 
           {% endif %}
@@ -380,7 +380,7 @@
       <img id='wifistatusimage' src='../static/img/lime-wifi-32-{{ wiFiConnected }}.png' />
     </div>
     <div id='failedsensorlist'>
-      {% for roomID,roomStr, sensorID,lastreading in roomList %} 
+      {% for roomID,roomStr, sensorID,lastreading, lasttemp in roomList %} 
         {% if roomID != 0 and roomID != sensorID %}
           <div class='failedsensor' id='failedsensor{{ roomID }}' onclick='toggleFailedStatus("{{ roomID }}"); return false;'>
             <div id='failedsensorname{{ roomID }}'>
