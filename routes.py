@@ -158,10 +158,22 @@ def getRoomList():
     #cursor.execute("SELECT ModuleID, strDescription FROM ModuleInfo ORDER BY moduleID")
     cursor.execute("SELECT distinct ModuleInfo.ModuleID, ModuleInfo.strDescription, sd.moduleID FROM ModuleInfo  LEFT JOIN (SELECT moduleID, timeStamp FROM SensorData WHERE timestamp > date_sub(now(), interval 15 minute))  sd ON ModuleInfo.moduleID = sd.moduleID ORDER BY ModuleInfo.moduleID")
     rooms = cursor.fetchall()
-
+    
+    roomlist = [[room[1],room[0],room[2], ""] for room in rooms]
+    
+    for room in roomlist:
+      cursor.execute("SELECT max(timeStamp) from SensorData where moduleID = %s" % room[1]);
+      times = cursor.fetchall()
+      
+      stamp = times[0][0]
+      
+      room[3] = "%d/%02d/%4d %02d:%02d:%02d" % (int(stamp.month), int(stamp.day), int(stamp.year), int(stamp.hour), int(stamp.minute), int(stamp.second))
+      
     cursor.close()
+    
+    finalrooms = [[room[1],room[0],room[2], room[3]] for room in roomlist]
 
-    return [[str(room[1]),room[0],room[2]] for room in rooms]
+    return [[room[1],room[0],room[2], room[3]] for room in roomlist]
 
 def getProgList():
     cursor = mysql.connect().cursor()
@@ -302,6 +314,11 @@ def getWiFiConnected():
         conn.close()
     return returnValue
     
+@app.route('/config')
+def config_page():
+  return render_template('config.html', **locals())
+  
+  
 @app.route('/')
 #@basic_auth.required
 def main_page():
@@ -321,14 +338,14 @@ def main_page():
     curRoom = -1
     # find the current room in the thermostat set list. Room list is a list of all rooms. When index 0 = index 3, the room sensor is active
     for testRoom in roomList:
-      if (testRoom[1] == curModule and testRoom[2] == curModule):
+      if (testRoom[0] == curModule and testRoom[2] == curModule):
         curRoom = testRoom 
         break
         
     # if the current room isn't in the room list (inactive/fault), default to the first one that is active
     if (curRoom == -1):
     	for testRoom in roomList:
-    		if (testRoom[1] != 0 and testRoom[1] == testRoom[2]):
+    		if (testRoom[0] != 0 and testRoom[2] == testRoom[2]):
     		  curRoom = testRoom
     		  break
     
@@ -581,9 +598,9 @@ def updateFailedSensors():
     roomList = getRoomList()
     failedList = []
     
-    for roomStr, roomID, sensorID in roomList:
+    for roomID, roomStr, sensorID, lastreading in roomList:
       if roomID != 0 and roomID != sensorID:
-        failedList.append([str(roomID), roomStr])
+        failedList.append([roomID, [roomStr, lastreading]])
 
     return jsonify(failedList)
 

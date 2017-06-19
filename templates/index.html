@@ -49,7 +49,6 @@
     // This will update the current indoor temp as fed from getIndoorTemp.py
     // Refreshes every 5 seconds
     function updateTemp() {
-        console.log("updating temp");
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         $.ajax({
         url : $SCRIPT_ROOT + "/_liveTemp",
@@ -104,7 +103,7 @@
       updateWiFiStatus()
     }, 5000);
     
-    // Update the failed sensor list every 10 minutes
+    // Update the failed sensor list every 5 minutes
     function updateFailedSensors() {
       $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
       $.ajax({
@@ -135,7 +134,7 @@
             obj = $('#failedsensor'+key);
             if (obj.length == 0) {
               // Display element for this sensor doesn't exist
-              $('#failedsensorlist').append("<div class='failedsensor' id='failedsensor"+key+"'>"+result[key]+"</div>");
+              $('#failedsensorlist').append("<div class='failedsensor' id='failedsensor"+key+"'  onclick='toggleFailedStatus(\""+key+"\");'><div id='failedsensorname"+key+"'>"+result[key][0]+"</div><div id='failedsensorinfo"+key+"' class='failedsensorinfo'>Last reading: "+result[key][1]+"</div></div>");
             }
           }
         }
@@ -143,7 +142,7 @@
     };
     window.setInterval(function() {
       updateFailedSensors()
-    }, 600000);
+    }, 300000);
     
     
   </script>
@@ -188,6 +187,16 @@
       }).done(function () {
         window.location.reload(true);
       });
+    }
+    
+    function toggleFailedStatus(sensorID) {
+      var container = $('#failedsensorinfo'+sensorID);
+      var vis = container.css('visibility');
+      if (vis == 'visible') {
+        container.css('visibility','hidden');
+      } else {
+        container.css('visibility','visible');
+      }
     }
     
     var tempSetTimeout = null; // Timer to cancel setting the temp if the button isn't pressed
@@ -284,13 +293,13 @@
   <form id="set-form" action={{ url_for('main_page') }} method="POST">
     <input type='hidden' id='desired-mode' name='desired-mode' value='{{ targMode }}' />
     <input type='hidden' id='target' name='target' value='{{ targTemp }}' />
-    <input type='hidden' id='target-room' name='target-room' value='{{ curRoom[1] }}' />
+    <input type='hidden' id='target-room' name='target-room' value='{{ curRoom[0] }}' />
     <input type='hidden' id='action' name='action' value='' />
   <!-- Intro Header -->
   <div class="intro">
     <div id='currenttemp'>
       <div id='title'>
-        {{ curRoom[0] }}
+        {{ curRoom[1] }}
       </div>
       <div id='value'>
         {{curTemp|safe}}
@@ -351,13 +360,13 @@
         sensor selection
       </div>
       <div id='selector'>
-        {% for roomStr,roomID,sensorID in roomList %} 
-          {% if loop.index-1 != 0 %} 
+        {% for roomID, roomStr,sensorID,lastreading in roomList %} 
+          {% if roomID != 0 %} 
             {% if roomID == sensorID %}
-              {% if roomID == curRoom[1] %}
-                <input type='radio' name='target-room-selector' id='room{{ loop.index-1 }}' value={{ roomID }} checked>{{ roomStr }}</input>
+              {% if roomID == curRoom[0] %}
+                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' checked>{{ roomStr }}</input>
               {% else %}
-                <input type='radio' name='target-room-selector' id='room{{ loop.index-1 }}' value={{ roomID }} >{{ roomStr }}</input>
+                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' >{{ roomStr }}</input>
               {% endif %} 
             {% endif %} 
           {% endif %}
@@ -371,10 +380,15 @@
       <img id='wifistatusimage' src='../static/img/lime-wifi-32-{{ wiFiConnected }}.png' />
     </div>
     <div id='failedsensorlist'>
-      {% for roomStr,roomID,sensorID in roomList %} 
+      {% for roomID,roomStr, sensorID,lastreading in roomList %} 
         {% if roomID != 0 and roomID != sensorID %}
-          <div class='failedsensor' id='failedsensor{{ roomID }}'>
-            {{ roomStr }}
+          <div class='failedsensor' id='failedsensor{{ roomID }}' onclick='toggleFailedStatus("{{ roomID }}"); return false;'>
+            <div id='failedsensorname{{ roomID }}'>
+              {{ roomStr }}
+            </div>
+            <div id='failedsensorinfo{{ roomID }}' class='failedsensorinfo'>
+              Last reading: {{ lastreading }}
+            </div>
           </div>
         {% endif %}
       {% endfor %}
@@ -383,7 +397,7 @@
       {{ currentTimeDate }}
     </div>
     <div id='info'>
-      <a onclick="reloadPage(); return false;" >
+      <a href='/config' >
         <img src='../static/img/info.png' />
       </a>
     </div>

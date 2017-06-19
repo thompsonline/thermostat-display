@@ -384,6 +384,17 @@ footer div {
   height: 50px;
   padding: 12px;
 }
+.failedsensorinfo {
+  position: absolute;
+  top: -120px;
+  height: 100px;
+  width: 260px;
+  background-color: #87aff9;
+  border-radius: 6px;
+  padding: 5px;
+  visibility:hidden;
+}
+
 #timedate {
   margin: auto;
   text-align: center;
