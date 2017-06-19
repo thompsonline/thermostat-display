@@ -6,6 +6,7 @@ from flask.ext.basicauth import BasicAuth
 from flaskext.mysql import MySQL
 from flaskext.lesscss import lesscss
 import subprocess
+import rpi_backlight as bl
 
 import logging
 import logging.handlers
@@ -527,6 +528,30 @@ def deleteProg(request):
       return request.form['direct']
     else:
       return url_for('main_page')
+
+@app.route('/_brighter', methods= ['GET'])
+def screenBrigher():
+  maxBrightness = bl.get_max_brightness()
+  currentBrightness = bl.get_actual_brightness()
+  currentBrightness = currentBrightness + int(round(maxBrightness / 10))
+  if currentBrightness <= maxBrightness:
+    bl.set_brightness(currentBrightness) 
+  else:
+    bl.set_brightness(maxBrightness)
+    
+  return ""
+  
+@app.route('/_dimmer', methods= ['GET'])
+def screenDimmer():
+  maxBrightness = bl.get_max_brightness()
+  currentBrightness = bl.get_actual_brightness()
+  currentBrightness = currentBrightness - int(round(maxBrightness / 10))
+  if currentBrightness >= 11:
+    bl.set_brightness(currentBrightness)
+  else:
+    bl.set_brightness(11)
+
+  return "" 
 
 @app.route('/_liveTargetTemp', methods= ['GET'])
 def updateTargetTemp():

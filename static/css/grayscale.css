@@ -619,3 +619,12 @@ body {
   color: #000;
   font-size: 1.4em;
 }
+
+.brightchange {
+  border-color: #219ab3 !important;
+  color: #219ab3 !important;
+}
+
+#brightTitle {
+  font-size: 1.5em;]
+}

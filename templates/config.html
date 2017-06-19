@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, height=device-height">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  
+  <title>Madison Thermostat</title>
+  
+  <!-- Bootstrap Core CSS -->
+  <!-- <link href="../static/css/bootstrap.min.css" rel="stylesheet"> -->
+  <link href="../static/css/bootstrap.css" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link href="../static/css/grayscale.css" rel="stylesheet">
+  
+  <!-- Custom Fonts -->
+  <link href="../static/font-awesome-4.1.0/css/font-awesome.min.css"
+    rel="stylesheet" type="text/css">
+  <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+  <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+  
+  <!-- jquery is kinda overkill, but I doubt anyone besides me will actually use this... -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+  
+  <script type=text/javascript src="/static/fastclick.js"></script>
+  
+  <script>
+    
+    window.addEventListener("load", function() {
+      // Set a timeout...
+      setTimeout(function(){
+        // Hide the address bar!
+        window.scrollTo(0, 1);
+      }, 0);
+
+      var plus, minus;
+  
+      brightplus = document.getElementById('brightplus');
+      brightminus = document.getElementById('brightminus');
+  
+      // Android 2.2 needs FastClick to be instantiated before the other listeners so that the stopImmediatePropagation hack can work.
+      FastClick.attach(brightminus);
+      FastClick.attach(brightplus);
+  
+      brightplus.addEventListener('click', function(event) {
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+          url : $SCRIPT_ROOT + "/_brighter",
+          success : function(result){
+          }
+        })
+      }, false);
+  
+      brightminus.addEventListener('click', function(event) {
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        $.ajax({
+          url : $SCRIPT_ROOT + "/_dimmer",
+          success : function(result){
+          }
+        })
+      }, false);
+
+      
+    });
+  </script>
+</head>
+
+<body id="page-top" data-spy="scroll">
+  <form id="set-form" action={{ url_for('config_page') }} method="POST">
+    <div class="intro">
+      Config page<br /><br />
+  
+      <a href='/'>Reload Thermostate</a>
+      
+      <div id='screenBrightControls'>
+        <div id='brightTitle'>Screen Brightness</div>
+        <div id='brightChange'>
+          <a style="position: relative; left: -30px; top: 10px" class="temp-btn temp-btn-default brightchange" id="brightminus">-</a> 
+          <a style="position: relative; left: 30px; top: 10px" class="temp-btn temp-btn-default brightchange" id="brightplus">+</a>
+        </div>
+      </div>
+    </div>  
+  </form>
+</body>
+
+</html>
