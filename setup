@@ -136,6 +136,7 @@ Remove default page
 Install mysql
 	sudo apt-get install mysql-server
 	mysql_secure_installation -- don't change password
+        set max_connections = 10 in /etc/mysql/my.cnf
 
 
 Install php
@@ -196,6 +197,7 @@ install Python extensions
 	sudo pip install flask-lesscss
 	sudo pip install plotly
 	sudo pip install numpy
+        sudo pip install mysql-connector-python-rf
 
 Fix lesscss
 	sudo vi /usr/local.lib/python2.7/dist-packages/flaskext/lesscss.py

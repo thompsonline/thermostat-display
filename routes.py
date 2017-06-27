@@ -241,13 +241,7 @@ def getCurrentState(targTemp,targMode,curRoom,curProg,expTime):
         else:
             retStr1 = '<span class="message_alert_warning">Unknown state</span>'
 
-    if targMode == 'Off':
-        retStr2 = 'Off'
-    elif targMode == 'Fan':
-        retStr2 = 'Currently in %s mode'%(targMode)
-    else:
-        retStr2 = '''Running in %s mode. Trying to reach
-                      %s&deg; on the %s sensor.'''%(targMode, targTemp, curRoom)
+    retStr2 = targMode
 
     if curProg == 'Manual':
         retStr3 = 'Target temperature is being set manually'
@@ -529,6 +523,7 @@ def deleteProg(request):
     else:
       return url_for('main_page')
 
+# Make the display brighter
 @app.route('/_brighter', methods= ['GET'])
 def screenBrigher():
   maxBrightness = bl.get_max_brightness()
@@ -541,6 +536,7 @@ def screenBrigher():
     
   return ""
   
+# Make the display dimmer  
 @app.route('/_dimmer', methods= ['GET'])
 def screenDimmer():
   maxBrightness = bl.get_max_brightness()
@@ -556,13 +552,13 @@ def screenDimmer():
 @app.route('/_liveTargetTemp', methods= ['GET'])
 def updateTargetTemp():
     curModule,targTemp,targMode,expTime = getThermSet()
-    return (str(targTemp)+'&deg')
+    return (str(targTemp))
 
 @app.route('/_liveTemp', methods= ['GET'])
 def updateTemp():
     curModule,targTemp,targMode,expTime = getThermSet()
     curTemp = getCurrentTemp(curModule)
-    return ('%d&deg;' % (round(curTemp,0)))
+    return (str(int(round(curTemp,0))))
 
 @app.route('/_liveStatus1', methods= ['GET'])
 def updateStatus1():
@@ -597,18 +593,6 @@ def updateStatus3():
     retStrings = getCurrentState(targTemp,targMode,curRoom,curProg,expTime)
     return retStrings[2]
 
-@app.route('/_timedate', methods= ['GET'])
-def updateTimeDate():
-    currentTime = time.strftime('%-I:%M');
-    if time.strftime('%p') == 'PM':
-      currentTime = currentTime + 'p'
-    else :
-      currentTime = currentTime + 'a'
-    currentDate = time.strftime(' %a %b %-d, %Y');
-    currentTimeDate = currentTime + currentDate;
-
-    return currentTimeDate
-
 @app.route('/_wifistatus', methods= ['GET'])
 def updateWiFiStatus():
     if getWiFiConnected():
@@ -622,11 +606,42 @@ def updateFailedSensors():
     roomList = getRoomList()
     failedList = []
     
-    for roomID, roomStr, sensorID, lastreading in roomList:
+    for roomID, roomStr, sensorID, lastreading, lasttemp in roomList:
       if roomID != 0 and roomID != sensorID:
         failedList.append([roomID, [roomStr, lastreading]])
 
     return jsonify(failedList)
+    
+# AJAX responder to determine if the controller has failed or not. It is marked as failed
+# if a command has not successfully been sent to it for 5 mins (600 seconds)
+@app.route('/_failedcontroller', methods= ['GET'])
+def updateFailedController():
+    failed = 'false'
+    status = getControllerStatus()
+    if int(status[1]) > 600:
+      failed = 'true'
+      logger.debug("failed controller")
+    else :
+      logger.debug("controller is good")
+      
+    return '{"state":"%s", "laststatus":"%s"}' % (failed, status[0])
+    
+# Read the latest relay controller status from the database. Get the last time the controller
+# was successfully sent instructions and the number of seconds since then
+def getControllerStatus():
+    cursor = mysql.connect().cursor()
+
+    cursor.execute("SELECT lastStatus, NOW()-lastStatus FROM ControllerStatus")
+    status = cursor.fetchall()
+
+    cursor.close()
+    
+    if status != None:
+      stamp = status[0][0]
+      stamp = "%d/%02d/%4d %02d:%02d:%02d" % (int(stamp.month), int(stamp.day), int(stamp.year), int(stamp.hour), int(stamp.minute), int(stamp.second))
+
+    return ([stamp, status[0][1]] if status != None and status[0] != None else [None,None])
+    
 
 @app.route('/_sparkTest/<moduleID>/<location>/<temperature>', methods= ['GET', 'POST'])
 #@basic_auth.required

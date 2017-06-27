@@ -53,13 +53,13 @@
         $.ajax({
         url : $SCRIPT_ROOT + "/_liveTemp",
         success : function(result){
-            $('#currenttemp>#value').html(result);
+            $('#currenttemp>#value').html(result + '&deg');
         }
     })
     };
     window.setInterval(function(){
       updateTemp()
-    }, 5000);
+    }, 10000);
 
     // Update the target temp every 5 seconds. Changes can be made from another station or through program changes
     function updateTargetTemp() {
@@ -67,29 +67,35 @@
         $.ajax({
           url : $SCRIPT_ROOT + "/_liveTargetTemp",
           success : function(result){
-            $('#targetTempDiv').html(result);
+            $('#targetTempDiv').html(result + '&deg;');
           }
         })
     };
     window.setInterval(function(){
       updateTargetTemp()
-    }, 5000);
+    }, 10000);
 
     // Update the date and time with the server date/time
     function updateTimeDate() {
-      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-      $.ajax({
-        url: $SCRIPT_ROOT + "/_timedate",
-        success: function(result) {
-          $('#timedate').html(result);
-        }
-      })
+      var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      var now = new Date();
+      ampm = 'a';
+      hr = now.getHours();
+      if (hr > 12) {
+        hr = hr - 12;
+        ampm = 'p';
+      }
+      min = now.getMinutes();
+      if (min < 10) min = "0"+min;
+      
+      $('#timedate').html(hr + ":" + min + ampm + ' ' + days[now.getDay()] + ' ' + months[now.getMonth()] + ' ' + now.getDate());
     };
     window.setInterval(function() {
       updateTimeDate()
     }, 1000);
     
-    // Update the WiFi status every 5 seconds
+    // Update the WiFi status every 10 seconds
     function updateWiFiStatus() {
       $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
       $.ajax({
@@ -101,7 +107,7 @@
     };
     window.setInterval(function() {
       updateWiFiStatus()
-    }, 5000);
+    }, 10000);
     
     // Update the failed sensor list every 5 minutes
     function updateFailedSensors() {
@@ -142,8 +148,29 @@
     };
     window.setInterval(function() {
       updateFailedSensors()
-    }, 300000);
-    
+    }, 20000);
+
+    function updateFailedController() {
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+      $.ajax({
+        url: $SCRIPT_ROOT + "/_failedcontroller",
+        success: function(result) {
+          json = JSON.parse(result);
+          if (json.state == 'true') {
+            $('#failedcontroller').css('visibility','visible');
+          } else {
+            $('#failedcontroller').css('visibility','hidden');
+            $('#failedcontrollerinfo').css('visibility','hidden');
+          }
+          
+          $('#failedcontrollerinfo').html('Last reading: '+json.laststatus);
+          
+        }
+      });
+    };
+    window.setInterval(function() {
+      updateFailedController()
+    }, 60000);
     
   </script>
   
@@ -191,6 +218,16 @@
     
     function toggleFailedStatus(sensorID) {
       var container = $('#failedsensorinfo'+sensorID);
+      var vis = container.css('visibility');
+      if (vis == 'visible') {
+        container.css('visibility','hidden');
+      } else {
+        container.css('visibility','visible');
+      }
+    }
+
+    function toggleFailedController() {
+      var container = $('#failedcontrollerinfo');
       var vis = container.css('visibility');
       if (vis == 'visible') {
         container.css('visibility','hidden');
@@ -308,7 +345,7 @@
         humidity {{curHumid|safe}}
       </div>
     </div>
-    <div id='settemp'>
+    <div id='settemp' style='{{ "visibility:hidden" if (modeString == "Off" or modeString == "Fan") else "" }}' >
       <div id='title'>
         set temp
       </div>
@@ -341,7 +378,7 @@
     </div>
     <div id='setmode'>
       <div id='button'>
-        <a style="position: relative; top: 10px" class="temp-btn temp-btn-default" id="mode">Off</a> 
+        <a style="position: relative; top: 10px" class="temp-btn temp-btn-default" id="mode">{{ modeString }}</a> 
       </div>
     </div>
     <div id='outdoortemp'>
@@ -392,6 +429,12 @@
           </div>
         {% endif %}
       {% endfor %}
+    </div>
+    <div id='failedcontroller' onclick='toggleFailedController(); return false;'>
+      Controller
+      <div id='failedcontrollerinfo' class='failedcontrollerinfo'>
+        Last reading: 
+      </div>
     </div>
     <div id='timedate'>
       {{ currentTimeDate }}

@@ -372,6 +372,26 @@ footer div {
   top: 5px;
   font-size: 1.5em;
 }
+#failedcontroller {
+  float: left;
+  font-size: 1.5em;
+  background-color: #e32;
+  margin-top: -5px;
+  margin-left: 10px;
+  height: 50px;
+  padding: 12px;
+  visibility:hidden;
+}  
+.failedcontrollerinfo {
+  position: absolute;
+  top: -120px;
+  height: 100px;
+  width: 260px;
+  background-color: #87aff9;
+  border-radius: 6px;
+  padding: 5px;
+  visibility:hidden;
+}
 #failedsensorlist {
   padding: 0;
 }
