@@ -22,6 +22,19 @@ sudo useradd -m <user> -G sudo
 sudo passwd <user>
 reboot
 login as <user>
+Setup SSH
+  mkdir /home/<user>/.ssh
+  cd /home/<user>
+  chmod og-wrx .ssh
+  cd .ssh
+  create file called authorized_keys and add public keys for authorized ssh users
+  edit /etc/ssh/sshd_config
+    set PermitRootLogin no
+    set PasswordAuthentication no
+  sudo /etc/init.d/ssh reload
+  Open a new terminal window and test ssh
+  
+
 Setup vi editor
 	vi /home/<user>/.vimrc
 		uncomment as needed
@@ -40,7 +53,7 @@ Protect against MITM, spoofing and other threats
 			net.ipv4.conf.all.accept_source_route = 0
 			net.ipv6.conf.all.accept_source_route = 0
 
-Setup a status IP address
+Setup a statc IP address
 	Add this to /etc/dhcpcd.conf
 		interface eth0
 
@@ -68,9 +81,23 @@ Open port 50 for thermostat app
 sudo ufw enable
 
 Setup postfix
+	sudo apt-get install postfix
+		Internet Site
+	sudo apt-get install mailutils	
 	edit /etc/postfix/sasl_password
 		[smtp.gmail.com]:587	username@gmailcom:password
 	chmod 600 /etc/postfix/sasl_password
+
+        touch smtpd.key
+        chmod 600 smtpd.key
+        openssl genrsa 1024 > smtpd.key
+        openssl req -new -key smtpd.key -x509 -days 3650 -out smtpd.crt # has prompts
+        openssl req -new -x509 -extensions v3_ca -keyout cakey.pem -out cacert.pem -days 3650 # has prompts
+        sudo mv smtpd.key /etc/ssl/private/
+        sudo mv smtpd.crt /etc/ssl/certs/
+        sudo mv cakey.pem /etc/ssl/private/
+        sudo mv cacert.pem /etc/ssl/certs/
+
 	edit /etc/postfix/main.cf
 		alias_maps = hash:/etc/aliases
 		myhostname = <host>
@@ -78,9 +105,12 @@ Setup postfix
 		smtp_use_tls=yes
 		smtp_sasl_security_options = 
 		smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
-		smtp-tls_CAfile = /etc/ssl/certs/ca-certificates.crt
 		inet_interfaces = loopback-only
 		inet_protocols = ipv4
+        sudo postconf -e 'smtpd_tls_key_file = /etc/ssl/private/smtpd.key'
+        sudo postconf -e 'smtpd_tls_cert_file = /etc/ssl/certs/smtpd.crt'
+        sudo postconf -e 'smtpd_tls_CAfile = /etc/ssl/certs/cacert.pem'
+
 	sudo postmap /etc/postfix/sasl_passwd
 	add "root: <user>" to /etc/aliases
 	sudo newaliases
@@ -96,7 +126,7 @@ Setup tripwire
 		system mail name: <hostname>
 	sudo apt-get install mailutils
 	sudo tripwire --init
-	sudo sh -c 'tripwire --check > tripchk
+	sudo sh -c 'tripwire --check > tripchk'
         sudo grep Filename tripchk > check.out
 	edit /etc/tripwire/twpol.txt and remove all lines that show in the grep
 	sudo twadmin -m P /etc/tripwire/twpol.txt
