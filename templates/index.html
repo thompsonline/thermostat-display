@@ -401,9 +401,9 @@
           {% if roomID != 0 %} 
             {% if roomID == sensorID %}
               {% if roomID == curRoom[0] %}
-                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' checked>{{ roomStr }}<span> ({{ lasttemp }}&deg;)</span></input>
+                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' checked>{{ roomStr }}<span id='selecttemp{{ roomID }}'> ({{ lasttemp }}&deg;)</span></input>
               {% else %}
-                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' >{{ roomStr }}<span> ({{ lasttemp }}&deg;)</span></input>
+                <input type='radio' name='target-room-selector' id='room{{ roomID }}' value='{{ roomID }}' >{{ roomStr }}<span id='selecttemp{{ roomID }}'> ({{ lasttemp }}&deg;)</span></input>
               {% endif %} 
             {% endif %} 
           {% endif %}

@@ -308,8 +308,111 @@ def getWiFiConnected():
         conn.close()
     return returnValue
     
+    
+def getSensorStatus():
+  returnValue = None
+  cursor = mysql.connect().cursor()
+
+  cursor.execute("select s1.latest, s2.moduleID, s2.location, s2.temperature, s2.humidity from (select readingID, moduleID, max(timeStamp) as latest from SensorData group by moduleID) s1 join SensorData as s2 on s1.readingID = s2.readingID ORDER BY s2.moduleID") 
+  sensors = cursor.fetchall()
+
+  sensorList = []
+  for sensor in sensors:
+    cursor.execute("select count(readingID) from SensorData where moduleID = %d and timeStamp > date_sub(now(), interval 1 hour)" % sensor[1])
+    counts = cursor.fetchall()
+    sensorList.append([sensor[0], sensor[1], sensor[2], counts[0][0], "Weather" if sensor[1] == 0 else "Local" if sensor[1] == 1 else "Remote"])
+
+  cursor.close()
+
+  return [[sensor[1], sensor[2], sensor[0], sensor[3], sensor[4]] for sensor in sensorList]
+    
+def getSensorReadingCounts():
+  cursor = mysql.connect().cursor()
+  cursor.execute("""
+		select concat(dh.d, ' ', if(dh.hours < 10, concat('0',dh.hours), dh.hours)) d, if(r.c is null, 0, r.c) c from 
+		(
+		select d, hours from 
+		(
+		select dates.all_dates d from 
+		(select adddate(curdate(),-1*(t1.i*10 + t0.i)) all_dates from
+		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,
+		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t1) dates
+		where dates.all_dates between date_sub(curdate(), interval 1 week) and curdate()) dd
+		cross join
+		(select hours from
+		(select tens.a*10 + ones.a hours from
+			(select 0 as a union all select 1 union all select 2 ) tens
+		cross join 
+			(select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) ones
+		order by hours) all_hours
+		where hours < 24) hh
+
+		) dh
+		left join
+		(
+				select count(readingID) c, date(timeStamp) d, hour(timeStamp) hours from SensorData WHERE moduleID=2 group by concat(date(timeStamp),' ',hour(timeStamp)) 
+		) r
+		ON dh.d = r.d and dh.hours = r.hours
+    where str_to_date(concat(dh.d, ' ', dh.hours, ':00'), '%Y-%m-%d %H:%i') <= now()
+		order by d  
+			""")
+  sensorReadingCounts = cursor.fetchall()
+  
+  return [[count[0], count[1]] for count in sensorReadingCounts]
+
+def getControllerCounts():
+  cursor = mysql.connect().cursor()
+  cursor.execute("""
+		select concat(dh.d, ' ', if(dh.hours < 10, concat('0',dh.hours), dh.hours)) d, if(r.c is null, 0, r.c) c from 
+		(
+		select d, hours from 
+		(
+		select dates.all_dates d from 
+		(select adddate(curdate(),-1*(t1.i*10 + t0.i)) all_dates from
+		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,
+		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t1) dates
+		where dates.all_dates between date_sub(curdate(), interval 1 week) and curdate()) dd
+		cross join
+		(select hours from
+		(select tens.a*10 + ones.a hours from
+			(select 0 as a union all select 1 union all select 2 ) tens
+		cross join 
+			(select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) ones
+		order by hours) all_hours
+		where hours < 24) hh
+		) dh
+		left join
+		(
+				select count(id) c, date(lastStatus) d, hour(lastStatus) hours from ControllerStatus group by concat(date(lastStatus),' ',hour(lastStatus)) 
+		) r
+		ON dh.d = r.d and dh.hours = r.hours
+    where str_to_date(concat(dh.d, ' ', dh.hours, ':00'), '%Y-%m-%d %H:%i') <= now()
+		order by d  
+			""")
+  controllerCounts = cursor.fetchall()
+  
+  return [[count[0], count[1]] for count in controllerCounts]
+    
+@app.route('/_controllerCount', methods= ['GET'])
+def updateControllerCount():
+  controllerCounts = getControllerCounts()
+  
+  return jsonify(controllerCounts)
+
+@app.route('/_sensorReadings', methods= ['GET'])
+def updateSensorReadings():
+  sensorReadings = getSensorReadingCounts()
+  
+  return jsonify(sensorReadings)
+    
 @app.route('/config')
 def config_page():
+  # Get current sensor status
+  sensorStatusList = getSensorStatus()
+
+  sensorReadingCounts = getSensorReadingCounts()
+  controllerCounts = getControllerCounts()
+
   return render_template('config.html', **locals())
   
   
@@ -618,9 +721,9 @@ def updateFailedSensors():
 def updateFailedController():
     failed = 'false'
     status = getControllerStatus()
-    if int(status[1]) > 600:
+    if int(status[1]) > 600:  # if it has been more than 600 seconds since the last successful controller connection, it has failed.
       failed = 'true'
-      logger.debug("failed controller")
+      logger.error("failed controller")
     else :
       logger.debug("controller is good")
       
@@ -631,7 +734,7 @@ def updateFailedController():
 def getControllerStatus():
     cursor = mysql.connect().cursor()
 
-    cursor.execute("SELECT lastStatus, NOW()-lastStatus FROM ControllerStatus")
+    cursor.execute("SELECT lastStatus, NOW()-lastStatus FROM ControllerStatus ORDER BY lastStatus DESC LIMIT 1")
     status = cursor.fetchall()
 
     cursor.close()

@@ -149,6 +149,9 @@ a:focus {
     background-size: cover;
     -o-background-size: cover;
 }
+#configpage.intro {
+  font-size: 2em;
+}
 
 .intro .intro-body {
 float:left;
@@ -534,7 +537,7 @@ body {
 #currenttemp {
   /* border: solid 1px #ccc; */
   float:left;
-  width: 300px;
+  width: 30%;
   font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
   text-align: center;
   height:300px;
@@ -556,7 +559,7 @@ body {
 #settemp {
   /* border: solid 1px #ccc; */
   float:left;
-  width: 200px;
+  width: 25%;
   font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
   text-align: center;
   vertical-align: middle;
@@ -581,7 +584,7 @@ body {
 #setmode {
   /* border: solid 1px #ccc; */
   float:left;
-  width: 150px;
+  width: 20%;
   font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
   text-align: center;
   vertical-align: middle;
@@ -596,6 +599,7 @@ body {
   font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
   text-align: center;
   height:300px;
+  width: 25%;
 }
 #outdoortemp #value {
   font-weight: 400;
@@ -611,7 +615,7 @@ body {
 
 #sensorselect {
   clear:both;
-  width: 300px;
+  width: 45%;
   /* border: solid 1px #ccc; */
   float:left;
   font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -639,7 +643,9 @@ body {
   color: #000;
   font-size: 1.4em;
 }
-
+#screenBrightControls {
+  height: 100px;
+}
 .brightchange {
   border-color: #219ab3 !important;
   color: #219ab3 !important;
