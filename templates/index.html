@@ -45,35 +45,40 @@
     function setURL(url){
         document.getElementById('iframe').src = url;
     }
-
-    // This will update the current indoor temp as fed from getIndoorTemp.py
-    // Refreshes every 5 seconds
-    function updateTemp() {
+    
+    // This will update the current info. It may change from another station
+    function updateInfo() {
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         $.ajax({
-        url : $SCRIPT_ROOT + "/_liveTemp",
-        success : function(result){
-            $('#currenttemp>#value').html(result + '&deg');
-        }
-    })
-    };
-    window.setInterval(function(){
-      updateTemp()
-    }, 10000);
-
-    // Update the target temp every 5 seconds. Changes can be made from another station or through program changes
-    function updateTargetTemp() {
-        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-        $.ajax({
-          url : $SCRIPT_ROOT + "/_liveTargetTemp",
+          url : $SCRIPT_ROOT + "/_liveInfo",
           success : function(result){
-            $('#targetTempDiv').html(result + '&deg;');
+          json = JSON.parse(result);
+            $('#currenttemp>#value').html(json.currentTemp + '&deg');
+            $('#targetTempDiv').html(json.targetTemp + '&deg;');
+            if (modeSetTimer == null && json.mode != '') { // Not in the process of changing the mode already
+              $('#mode').html(json.mode);
+              switch(json.mode) {
+                case 'Off':
+                case 'Fan':
+                  $('#settempmode').html('');
+                  break;
+                case 'Cool':
+                  $('#settempmode').html('cool-to');
+                  break;
+                case 'Heat':
+                  $('#settempmode').html('heat-to');
+                  break;
+              }
+            }
+            $('#humidity>#humidvalue').html(json.currentHumid + '%');
+            $('#outsideTempValue').html(json.outsideTemp);
+            $('#outsideHumidValue').html(json.outsideHumid);
           }
         })
     };
     window.setInterval(function(){
-      updateTargetTemp()
-    }, 10000);
+      updateInfo()
+    }, 5000);
 
     // Update the date and time with the server date/time
     function updateTimeDate() {
@@ -191,6 +196,18 @@
         $('#settemp').css('visibility','hidden');
       } else {
         $('#settemp').css('visibility','visible');
+        switch(modes[currentModeIndex]) {
+          case 'Off':
+          case 'Fan':
+            $('#settempmode').html('');
+            break;
+          case 'Cool':
+            $('#settempmode').html('cool-to');
+            break;
+          case 'Heat':
+            $('#settempmode').html('heat-to');
+            break;
+        }
       }
     }
   </script>
@@ -215,7 +232,7 @@
         window.location.reload(true);
       });
     }
-    
+
     function toggleFailedStatus(sensorID) {
       var container = $('#failedsensorinfo'+sensorID);
       var vis = container.css('visibility');
@@ -342,7 +359,7 @@
         {{curTemp|safe}}
       </div>
       <div id='humidity'>
-        humidity {{curHumid|safe}}
+        humidity <span id='humidvalue'>{{curHumid|safe}}</span>
       </div>
     </div>
     <div id='settemp' style='{{ "visibility:hidden" if (modeString == "Off" or modeString == "Fan") else "" }}' >
@@ -386,10 +403,10 @@
         outdoors
       </div>
       <div id='value'>
-        {{ outsideTemp }}&deg;
+        <span id='outsideTempValue'>{{ outsideTemp }}</span>&deg;
       </div>
       <div id='value'>
-        {{outsideHumid }}%
+        <span id='outsideHumidValue'>{{outsideHumid }}</span>%
       </div>
     </div>    
     <div id='sensorselect'>

@@ -56,6 +56,8 @@ class MyLogger(object):
                 if message.rstrip() != "":
                         self.logger.log(self.level, message.rstrip())
 
+sys.stdout = MyLogger(logger, logging.INFO)
+sys.stderr = MyLogger(logger, logging.ERROR)
 
 app = Flask(__name__)
 lesscss(app)
@@ -404,6 +406,16 @@ def updateSensorReadings():
   sensorReadings = getSensorReadingCounts()
   
   return jsonify(sensorReadings)
+
+@app.route('/_liveInfo')
+def getLiveInfo():
+  curModule,targTemp,targMode,expTime = getThermSet()
+  curTemp = getCurrentTemp(curModule)
+  curHumid = getCurrentHumid(curModule)
+  outsideTemp = getCurrentTemp(0)
+  outsideHumid = getCurrentHumid(0)
+  result = '{"mode":"%s", "targetTemp":"%s", "currentTemp":%d, "currentHumid":%d, "outsideTemp":%d, "outsideHumid":%d}' % (targMode, targTemp, int(round(curTemp,0)), int(round(curHumid,0)), int(round(outsideTemp,0)), int(round(outsideHumid,0)))
+  return(result)
     
 @app.route('/config')
 def config_page():
@@ -651,17 +663,6 @@ def screenDimmer():
     bl.set_brightness(11)
 
   return "" 
-
-@app.route('/_liveTargetTemp', methods= ['GET'])
-def updateTargetTemp():
-    curModule,targTemp,targMode,expTime = getThermSet()
-    return (str(targTemp))
-
-@app.route('/_liveTemp', methods= ['GET'])
-def updateTemp():
-    curModule,targTemp,targMode,expTime = getThermSet()
-    curTemp = getCurrentTemp(curModule)
-    return (str(int(round(curTemp,0))))
 
 @app.route('/_liveStatus1', methods= ['GET'])
 def updateStatus1():
