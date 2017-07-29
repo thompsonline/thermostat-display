@@ -31,9 +31,6 @@
   <script src="../static/js/Chart.bundle.min.js" /></script>
   
   <script>
-    var sensorChart;
-    var controllerChart;
-    
     window.addEventListener("load", function() {
       // Set a timeout...
       setTimeout(function(){
@@ -68,125 +65,8 @@
         })
       }, false);
 
-      var ctx = $("#sensorchart");
-			sensorChart = new Chart(ctx, {
-					type: 'bar',
-					data: {
-							labels: [
-							  {% for datetime, count in sensorReadingCounts %}"{{ datetime }}",{% endfor %}
-							],
-							datasets: [{
-									label: 'Readings',
-									data: [
-    							  {% for datetime, count in sensorReadingCounts %}{{ count }},{% endfor %}
-									],
-									backgroundColor: [
-    							  {% for datetime, count in sensorReadingCounts %}'rgba(75, 192, 192, 0.2)',{% endfor %}
-									],
-									borderColor: [
-    							  {% for datetime, count in sensorReadingCounts %}'rgba(75, 192, 192, 1)',{% endfor %}
-									], 
-									borderWidth: 1
-							}]
-					},
-					options: {
-							scales: {
-									yAxes: [{
-											ticks: {
-													beginAtZero:true
-											}
-									}]
-							}
-					}
-			});      
-			
-      var ctx = $("#controllerchart");
-			controllerChart = new Chart(ctx, {
-					type: 'bar',
-					data: {
-							labels: [
-							  {% for datetime, count in controllerCounts %}"{{ datetime }}",{% endfor %}
-							],
-							datasets: [{
-									label: 'Controller Contacts',
-									data: [
-    							  {% for datetime, count in controllerCounts %}{{ count }},{% endfor %}
-									],
-									backgroundColor: [
-    							  {% for datetime, count in controllerCounts %}'rgba(75, 192, 192, 0.2)',{% endfor %}
-									],
-									borderColor: [
-    							  {% for datetime, count in controllerCounts %}'rgba(75, 192, 192, 1)',{% endfor %}
-									], 
-									borderWidth: 1
-							}]
-					},
-					options: {
-							scales: {
-									yAxes: [{
-											ticks: {
-													beginAtZero:true
-											}
-									}]
-							}
-					}
-			});      
-			
     });
     
-    function updateSensorReadingData() {
-      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-      $.ajax({
-        url : $SCRIPT_ROOT + "/_sensorReadings",
-        success : function(result){
-          var dates = [];
-          var counts = [];
-          var barcolors = [];
-          var barlines = [];
-          for (var key in result) {
-            dates.push(key);
-            counts.push(result[key]);
-            barcolors.push('rgba(75, 192, 192, 0.2)');
-            barlines.push('rgba(75, 192, 192, 1)');
-          }
-          sensorChart.data.labels = dates;
-          sensorChart.data.datasets[0].data = counts;
-          sensorChart.data.datasets[0].backgroundColor = barcolors;
-          sensorChart.data.datasets[0].borderColor = barlines;
-          sensorChart.update();
-        }
-      })
-    };
-    window.setInterval(function(){
-      updateSensorReadingData()
-    }, 10000);    
-    
-    function updateControllerData() {
-      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-      $.ajax({
-        url : $SCRIPT_ROOT + "/_controllerCount",
-        success : function(result){
-          var dates = [];
-          var counts = [];
-          var barcolors = [];
-          var barlines = [];
-          for (var key in result) {
-            dates.push(key);
-            counts.push(result[key]);
-            barcolors.push('rgba(75, 192, 192, 0.2)');
-            barlines.push('rgba(75, 192, 192, 1)');
-          }
-          controllerChart.data.labels = dates;
-          controllerChart.data.datasets[0].data = counts;
-          controllerChart.data.datasets[0].backgroundColor = barcolors;
-          controllerChart.data.datasets[0].borderColor = barlines;
-          controllerChart.update();
-        }
-      })
-    };
-    window.setInterval(function(){
-      updateControllerData()
-    }, 10000);    
   </script>
 </head>
 
@@ -195,8 +75,6 @@
     <div class="intro">
       Config page<br /><br />
   
-      <a href='/'>Reload Thermostate</a>
-      
       <div id='screenBrightControls'>
         <div id='brightTitle'>Screen Brightness</div>
         <div id='brightChange'>
@@ -204,8 +82,12 @@
           <a style="position: relative; left: 30px; top: 10px" class="temp-btn temp-btn-default brightchange" id="brightplus">+</a>
         </div>
       </div>
-      <canvas id='sensorchart' height="200" width='400'></canvas>
-      <canvas id='controllerchart' height="200" width='400'></canvas>
+
+      <div id='configmenu'>      
+        <a href='/'>Reload Thermostat</a><br /><br />
+        <a href="/sensor">Sensor Data</a><br /><br />
+        <a href="/controller">Controller Data</a>
+      </div>
       
     </div>  
   </form>

@@ -355,7 +355,9 @@ def getSensorReadingCounts():
 				select count(readingID) c, date(timeStamp) d, hour(timeStamp) hours from SensorData WHERE moduleID=2 group by concat(date(timeStamp),' ',hour(timeStamp)) 
 		) r
 		ON dh.d = r.d and dh.hours = r.hours
-    where str_to_date(concat(dh.d, ' ', dh.hours, ':00'), '%Y-%m-%d %H:%i') <= now()
+    where 
+      str_to_date(concat(dh.d, ' ', dh.hours, ':00'), '%Y-%m-%d %H:%i') <= now()
+      and str_to_date(concat(dh.d, ' ', dh.hours, ':00'), '%Y-%m-%d %H:%i') > DATE_SUB(NOW(), INTERVAL 7 DAY) 
 		order by d  
 			""")
   sensorReadingCounts = cursor.fetchall()
@@ -388,7 +390,9 @@ def getControllerCounts():
 				select count(id) c, date(lastStatus) d, hour(lastStatus) hours from ControllerStatus group by concat(date(lastStatus),' ',hour(lastStatus)) 
 		) r
 		ON dh.d = r.d and dh.hours = r.hours
-    where str_to_date(concat(dh.d, ' ', dh.hours, ':00'), '%Y-%m-%d %H:%i') <= now()
+    where 
+      str_to_date(concat(dh.d, ' ', dh.hours, ':00'), '%Y-%m-%d %H:%i') <= now()
+      and str_to_date(concat(dh.d, ' ', dh.hours, ':00'), '%Y-%m-%d %H:%i') > DATE_SUB(NOW(), INTERVAL 7 DAY) 
 		order by d  
 			""")
   controllerCounts = cursor.fetchall()
@@ -426,6 +430,22 @@ def config_page():
   controllerCounts = getControllerCounts()
 
   return render_template('config.html', **locals())
+  
+@app.route('/controller')
+def controller_page():
+  # Get current controller status
+  controllerCounts = getControllerCounts()
+
+  return render_template('controller.html', **locals())
+  
+@app.route('/sensor')
+def sensor_page():
+  # Get current sensor status
+  sensorStatusList = getSensorStatus()
+
+  sensorReadingCounts = getSensorReadingCounts()
+
+  return render_template('sensor.html', **locals())
   
   
 @app.route('/')
