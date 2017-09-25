@@ -178,6 +178,8 @@ Setup Git
 	git config --global user.name "thompsonline"
 	git config --global user.email "john.thompson@start-thinking.com"
 
+sudo apt-get install dos2unix
+
 LCD Brighness
 sudo pip install rpi_backlight
 sudo nano /etc/udev/rules.d/backlight-permissions.rules
