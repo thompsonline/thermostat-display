@@ -41,10 +41,3 @@ mysqlPort = 3306
 mysqlBackup = True
 mysqlBackupDir = /tmp
 
-# Weather setup. You can look up your NOAA Code at:
-# http://w1.weather.gov/xml/current_obs/seek.php?state=az&Find=Find
-# WeatherModuleID should be the moduleID field that you have labeled
-# as "outside".
-NOAAWeather = True
-NOAACode = <NOAA local weather code>
-WeatherModuleID = 2
