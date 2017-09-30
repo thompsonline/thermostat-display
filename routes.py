@@ -39,6 +39,8 @@ elif logLevelConfig ==  'debug':
 LOGROTATE = config.get('logging', 'logrotation')
 LOGCOUNT = int(config.get('logging', 'logcount'))
 
+IPAddress = config.get('main','IPAddress')
+
 logger = logging.getLogger(__name__)
 logger.setLevel(LOG_LOGLEVEL)
 handler = logging.handlers.TimedRotatingFileHandler(LOG_LOGFILE, when=LOGROTATE, backupCount=LOGCOUNT)
@@ -165,7 +167,7 @@ def getRoomList():
     roomlist = [[room[1],room[0],room[2], "", ""] for room in rooms]
     
     for room in roomlist:
-      cursor.execute("SELECT timeStamp, temperature from SensorData where moduleID = %s order by readingID DESC limit 1,1" % room[1]);
+      cursor.execute("SELECT timeStamp, temperature from SensorData where moduleID = %s order by readingID DESC limit 0,1" % room[1])
       timetemps = cursor.fetchall()
       
       stamp = timetemps[0][0]
@@ -790,4 +792,4 @@ def sparkData(moduleID,location,temperature):
 logger.info("Starting")
 
 if __name__ == '__main__':
-    app.run("192.168.1.10",port=70, debug=True) # Listen on all interfaces
+    app.run(host=IPAddress, port=70, debug=True) # Listen on all interfaces

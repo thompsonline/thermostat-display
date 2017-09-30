@@ -33,6 +33,9 @@ plotlyPlot4 = https://plot.ly/~thompsonline/11
 # the thermostat is connected to WiFi
 WiFiDetectAddress=192.168.1.1
 
+#Published web interface IP address
+IPAddress=192.168.1.108
+
 # You have the option to have both a deployment and
 # development environment. If you will not be using
 # a development environment, simply set "developing"

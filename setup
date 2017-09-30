@@ -39,7 +39,12 @@ Setup vi editor
 	vi /home/<user>/.vimrc
 		uncomment as needed
 		add "set nocp"
+                add "set ignorecase"
 sudo deluser pi
+sudo adduser pi
+sudo raspi-config
+	Set to auto login as pi
+
 sudo apt-get update
 Protect against MITM, spoofing and other threats
 	sudo vi /etc/sysctl.conf
@@ -239,12 +244,19 @@ Install phpmyadmin
 Load Thermy Tables
 	Create user called thermostat with a database called Thermostat
 	copy contents of thermostat-control/tables.sql from Git and load SQL to Thermostat database
-	INSERT INTO `ModuleInfo` (`moduleID`, `strDescription`, `firmwareVer`, `tempSense`, `humiditySense`, `lightSense`, `motionSense`) VALUES (1, 'Dining Room', '1', 1, 0, 0, 0), (2, 'Downstairs', '1', 1, 1, 0, 0);
-	INSERT INTO `OperationModes` (`mode`) VALUES ('Cool'), ('Fan'), ('Heat'), ('Off');
+	INSERT INTO `ModuleInfo` (`moduleID`, `strDescription`, `firmwareVer`, `tempSense`, `humiditySense`, `lightSense`, `motionSense`) VALUES (1, 'Dining Room', '1', 1, 0, 0, 0), (2, 'Downstairs', '1', 1, 1, 0, 0), (0, 'Outside', '1', 1, 1, 0, 0);
+	INSERT INTO `OperationModes` (`mode`,displayorder) VALUES ('Cool',2), ('Fan',3), ('Heat',1), ('Off',0);
 
 INSERT INTO `ProgramTypes` (`program`, `active`) VALUES
 ('7-Day', 1),
 ('Manual', 0);
+
+insert into ThermostatSet (moduleID, targetTemp, targetMode, expiryTime) values (1, 72, 'Off', now());
+insert into SensorData (moduleID, location, temperature, humidity) values (1, 'Living Room', 72, 20);
+insert into SensorData (moduleID, location, temperature, humidity) values (2, 'Downstairs', 68, 20);
+insert into SensorData (moduleID, location, temperature, humidity) values (0, 'Outside', 68, 20);
+INSERT INTO `ThermostatLog` (`timeStamp`, `mode`, `moduleID`, `targetTemp`, `actualTemp`, `coolOn`, `heatOn`, `fanOn`, `auxOn`) VALUES
+('2017-09-27 03:12:15', 'Off', 1, 72, 72, 0, 0, 0, 0);
 
 Setup Thermostat Credentials
 	Update all config.txt files for all thermostat-* modules
@@ -293,6 +305,7 @@ Install thermostat-monitorwifi
 Install thermostat-plotter
 	Install latest Python Weather API
 		wget https://launchpad.net/python-weather-api/trunk/0.3.8/+download/pywapi-0.3.8.tar.gz
+		sudo python setup.py build
 		sudo python setup.py install
 
 	sudo cp thermostat-plotter/init.d/thermplot.sh /etc/init.d/
@@ -311,3 +324,15 @@ Setup SSH keys
 Setup pigpio autostart
 	sudo crontab -e
 		@reboot pigpiod
+
+Setup kiosk mode
+	cp /etc/xdg/lxsession/LXDE-pi/autostart /home/pi/.config/lxsession/LXDE-pi/autostart
+	sudo vi /home/pi/.config/lxsession/LXDE-pi/autostart
+
+#@xscreensaver -no-splash  # comment this line out to disable screensaver
+@xset s off
+@xset -dpms
+@xset s noblank
+@chromium-browser --incognito --kiosk http://localhost:70
+
+sudo reboot
