@@ -471,7 +471,27 @@ body {
     -webkit-transition: all .3s ease-in-out;
     -moz-transition: all .3s ease-in-out;
     transition: all .3s ease-in-out;
-/*     padding: 20px 26px; */
+    padding: 10px 20px;
+    font-size: 18px;
+    line-height: 1.33;
+    border-radius: 6px;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.mode-btn {
+    text-transform: uppercase;
+    text-align: center;
+    font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: 400;
+    -webkit-transition: all .3s ease-in-out;
+    -moz-transition: all .3s ease-in-out;
+    transition: all .3s ease-in-out;
     padding: 10px 20px;
     font-size: 18px;
     line-height: 1.33;
@@ -500,6 +520,21 @@ body {
 
 .temp-btn-default:hover,
 .temp-btn-default:focus {
+    border: 2px solid #219ab3;
+    cursor: pointer;
+    outline: 0;
+    color: #000;
+    background-color: #219ab3;
+}
+
+.mode-btn-default {
+    border: 2px solid #fff;
+    color: #fff;
+    background-color: transparent;
+}
+
+.mode-btn-default:hover,
+.mode-btn-default:focus {
     border: 2px solid #219ab3;
     cursor: pointer;
     outline: 0;

@@ -296,9 +296,17 @@
       minus.addEventListener('click', function(event) {
         decrementValue($('#targetbutton'))
       }, false);
-      
+     
+      $('#mode').hover(function(event) {
+        $('#mode').css('background-color: #f00');
+      },
+      function(event) {
+        $('#mode').css('background-color: #000');
+      });
+
       mode.addEventListener('click', function(event) {
-        $('#mode').css('border-color','#219ab3').css('color','#219ab3');
+        $('#mode').css('border-color','#f00').css('color','#f00');
+        //$('#mode').css('border-color','#219ab3').css('color','#219ab3');
         if (modeSetTimer != null) {
           clearTimeout(modeSetTimer);
           modeSetTimer = null;
@@ -395,7 +403,7 @@
     </div>
     <div id='setmode'>
       <div id='button'>
-        <a style="position: relative; top: 10px" class="temp-btn temp-btn-default" id="mode">{{ modeString }}</a> 
+        <a style="position: relative; top: 10px" class="mode-btn mode-btn-default" id="mode">{{ modeString }}</a> 
       </div>
     </div>
     <div id='outdoortemp'>

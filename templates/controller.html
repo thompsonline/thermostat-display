@@ -23,12 +23,12 @@
   <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
   <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
   
-  <!-- jquery is kinda overkill, but I doubt anyone besides me will actually use this... -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
   
   <script type=text/javascript src="/static/fastclick.js"></script>
   <script src="../static/js/Chart.bundle.min.js" /></script>
+  <script src="../static/js/chartjs-plugin-zoom.min.js" /></script>
   
   <script>
     var controllerChart;
@@ -68,6 +68,27 @@
 													beginAtZero:true
 											}
 									}]
+							},
+							layout: {
+								padding: {
+									left: 30,
+									right: 30,
+									top: 0,
+									bottom: 0
+								}
+							},
+							pan: {
+								enabled: true,
+								mode: 'xy'
+							},
+							zoom: {
+								enabled: true,
+								mode: 'x',
+								sensitivity: 3,
+								limits: {
+									max: 10,
+									min: 0.5
+								}
 							}
 					}
 			});      
